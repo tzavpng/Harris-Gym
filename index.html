@@ -1,0 +1,1848 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Χάρης Gym">
+<meta name="theme-color" content="#0D0F12">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
+</head>
+<body>
+<title>Χάρης Gym Log</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: one-screen phone app. Sticky header, scrolling view, fixed bottom tabs; equipment opens a full-screen sheet with a dark "gym floor" 3D stage. Category colours follow Olympic plate colours. */
+:root{
+  --bg:#EDEFF2; --surface:#FFFFFF; --surface-2:#F5F6F8; --ink:#14171B; --muted:#5B6470; --line:#D6DBE1;
+  --stage:#1C1F24; --stage-ink:#C9CFD6;
+  --chest:#C8102E; --back:#1F5FBF; --legs:#1E8449; --glutes:#D2601A; --shoulders:#C98F00; --arms:#7A4FC9; --core:#5E6B78; --cardio:#0E8585;
+  --good:#1E8449; --gold:#B88A00;
+  --font-d:'Barlow Condensed','Arial Narrow',system-ui,sans-serif;
+  --font-b:'Inter',system-ui,-apple-system,sans-serif;
+  --nav-h:62px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D0F12; --surface:#16191E; --surface-2:#1C2026; --ink:#ECEEF1; --muted:#8D96A2; --line:#272C33;
+  --stage:#181B20; --stage-ink:#AEB6BF;
+  --chest:#E5384F; --back:#4C86E6; --legs:#2FAE66; --glutes:#F07A33; --shoulders:#F2B705; --arms:#9C7BE0; --core:#8693A0; --cardio:#22B3B3;
+  --good:#2FAE66; --gold:#F2B705; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D0F12; --surface:#16191E; --surface-2:#1C2026; --ink:#ECEEF1; --muted:#8D96A2; --line:#272C33;
+  --stage:#181B20; --stage-ink:#AEB6BF;
+  --chest:#E5384F; --back:#4C86E6; --legs:#2FAE66; --glutes:#F07A33; --shoulders:#F2B705; --arms:#9C7BE0; --core:#8693A0; --cardio:#22B3B3;
+  --good:#2FAE66; --gold:#F2B705; color-scheme:dark}
+
+html,body{height:100%}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-b);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+h1,h2,h3{font-family:var(--font-d);font-weight:700;letter-spacing:.01em;text-wrap:balance;margin:0}
+.num{font-variant-numeric:tabular-nums}
+
+.app{max-width:760px;margin:0 auto;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 24px)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:14px 10px}
+.brand{font-family:var(--font-d);font-size:26px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.brand i{display:inline-block;width:22px;height:22px;border-radius:50%;border:5px solid var(--ink);position:relative;flex:none}
+.brand i::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--ink)}
+.brand b{color:var(--chest)}
+.today-chip{font-size:13px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 11px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.today-chip b{color:var(--ink)}
+.today-chip.resting{color:var(--ink);border-color:var(--gold)}
+
+.view{display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.section-title{font-size:22px;text-transform:uppercase;letter-spacing:.03em;margin-top:6px}
+
+.greet{background:var(--ink);color:var(--bg);border-radius:14px;padding:14px 14px 12px;display:flex;flex-direction:column;gap:8px}
+.greet .eyebrow{color:inherit;opacity:.65}
+.greet p{margin:0;font-family:var(--font-d);font-size:23px;font-weight:700;line-height:1.12;text-wrap:balance}
+.greet button{align-self:flex-start;border:1px solid currentColor;background:transparent;color:inherit;border-radius:999px;padding:4px 11px;font-size:12.5px;opacity:.8}
+
+.search{position:relative}
+.search input{width:100%;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 12px 11px 38px}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
+.filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;margin-inline:-2px;padding-inline:2px}
+.filters::-webkit-scrollbar{display:none}
+.fchip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 13px;font-size:14px;display:flex;align-items:center;gap:7px}
+.fchip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--cc,var(--muted));flex:none}
+
+.group-title{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:20px;text-transform:uppercase;letter-spacing:.03em;margin-top:4px}
+.group-title span{font-family:var(--font-b);font-size:12.5px;color:var(--muted);font-weight:500;letter-spacing:0;text-transform:none}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (min-width:600px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:0;text-align:left;overflow:hidden;display:flex;flex-direction:column}
+.card:active{transform:scale(.98)}
+.thumb{aspect-ratio:4/3;max-width:100%;background:radial-gradient(120% 90% at 50% 85%,#2A2E35 0%,var(--stage) 70%);display:grid;place-items:center}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb span{color:var(--stage-ink);font-family:var(--font-d);font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.card-body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:5px;min-width:0}
+.card-name{font-weight:600;font-size:14.5px;line-height:1.25}
+.card-dots{display:flex;gap:5px;flex-wrap:wrap}
+.card-meta{font-size:12.5px;color:var(--muted)}
+
+.banner{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--surface-2);border:1px dashed var(--line);border-radius:12px;padding:10px 12px;font-size:13.5px;color:var(--muted)}
+.banner button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 10px;font-size:13px}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.empty{color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.btn{border:0;background:var(--ink);color:var(--bg);border-radius:10px;padding:11px 16px;font-weight:600}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:var(--chest);color:#fff}
+
+.sess-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.sess-label{font-family:var(--font-d);font-size:24px;font-weight:700;text-transform:uppercase;line-height:1}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;border-radius:999px;padding:3px 9px 3px 7px;background:var(--surface-2);border:1px solid var(--line);white-space:nowrap}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(76px,1fr));gap:8px}
+.stat{background:var(--surface-2);border-radius:10px;padding:9px 10px;min-width:0}
+.stat b{display:block;font-family:var(--font-d);font-size:22px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{font-size:11.5px;color:var(--muted)}
+.exlist{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.exlist li{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:baseline;font-size:14px}
+.exlist .dot{align-self:center}
+.exlist .sets-inline{grid-column:2;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.wd{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11.5px;color:var(--muted)}
+.wd .bars{height:34px;width:100%;max-width:30px;border-radius:7px;background:var(--surface-2);border:1px solid var(--line);display:flex;flex-direction:column-reverse;overflow:hidden}
+.wd .bars i{display:block;background:var(--cc)}
+.wd.today{color:var(--ink);font-weight:600}
+.balance{font-size:13px;color:var(--muted)}
+.balance b{color:var(--ink);font-weight:600}
+
+details.day{background:var(--surface);border:1px solid var(--line);border-radius:12px}
+details.day summary{list-style:none;padding:12px 14px;display:flex;justify-content:space-between;gap:10px;align-items:center;cursor:pointer}
+details.day summary::-webkit-details-marker{display:none}
+details.day .sum-l{display:flex;flex-direction:column;gap:4px;min-width:0}
+details.day .sum-date{font-size:12.5px;color:var(--muted)}
+details.day .sum-label{font-family:var(--font-d);font-size:19px;font-weight:700;text-transform:uppercase;line-height:1.05}
+details.day .sum-r{text-align:right;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+details.day .sum-r b{color:var(--ink);font-size:14px}
+details.day .day-body{padding:0 14px 14px}
+.history{display:flex;flex-direction:column;gap:8px}
+
+select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+.chart-wrap{width:100%;overflow:hidden}
+.chart-wrap svg{display:block;width:100%;height:auto}
+.musc{display:flex;flex-direction:column;gap:8px}
+.musc-row{display:grid;grid-template-columns:80px 1fr 34px;gap:10px;align-items:center;font-size:13.5px}
+.musc-bar{height:10px;border-radius:5px;background:var(--surface-2);overflow:hidden}
+.musc-bar i{display:block;height:100%;background:var(--cc);border-radius:5px}
+.musc-row .n{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+textarea{font:13px ui-monospace,Menlo,monospace;width:100%;min-height:90px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--ink);padding:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.panel h3.h3{font-size:20px;text-transform:uppercase}
+.live{background:var(--ink);color:var(--bg);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.live .eyebrow{color:inherit;opacity:.7;display:flex;align-items:center;gap:8px}
+.live .eyebrow i{width:8px;height:8px;border-radius:50%;background:var(--chest);display:inline-block}
+.live .clock{font-family:var(--font-d);font-size:52px;font-weight:700;line-height:.95;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.live .sub{font-size:13.5px;opacity:.8;font-variant-numeric:tabular-nums}
+.live .row .btn{flex:1;background:var(--bg);color:var(--ink)}
+.live .row .btn.alt{background:transparent;color:var(--bg);border:1px solid currentColor}
+.start-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:14px;padding:16px;background:var(--chest);color:#fff;font-family:var(--font-d);font-size:24px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.start-btn svg{width:22px;height:22px}
+.today-chip.live-chip{background:var(--chest);border-color:var(--chest);color:#fff}
+.today-chip.live-chip b{color:#fff}
+.overlay{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.55);display:grid;place-items:center;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.overlay .panel{width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+@media (prefers-reduced-motion:no-preference){.live .eyebrow i{animation:blink 1.4s infinite}@keyframes blink{50%{opacity:.25}}}
+.prog-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:600px){.prog-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.prog-card{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.prog-card .pn{font-family:var(--font-d);font-size:24px;font-weight:700;text-transform:uppercase;line-height:1;overflow-wrap:anywhere}
+.prog-card.new{border-style:dashed;align-items:center;justify-content:center;color:var(--muted);font-weight:600;min-height:86px}
+.eq-label{display:flex;align-items:center;gap:8px;border:0;background:none;padding:0;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600;text-align:left}
+.eq-label img{width:48px;height:36px;border-radius:6px;background:var(--stage);object-fit:cover;flex:none}
+.eq-label.on{color:var(--ink)}
+.prog-ex{display:flex;flex-direction:column;gap:6px}
+.b-foot{padding-block:10px calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-top:1px solid var(--line);background:var(--surface)}
+.b-foot .btn{width:100%;max-width:760px;display:block;margin:0 auto}
+.txt-in{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+.quick{display:flex;gap:6px;flex-wrap:wrap}
+.quick button{border:1px solid var(--line);background:var(--surface-2);border-radius:999px;padding:5px 11px;font-size:13px}
+details.eqpick{background:var(--surface);border:1px solid var(--line);border-radius:12px}
+details.eqpick summary{list-style:none;display:flex;align-items:center;gap:10px;padding:8px 12px 8px 8px;cursor:pointer}
+details.eqpick summary::-webkit-details-marker{display:none}
+details.eqpick summary img{width:56px;height:42px;border-radius:7px;background:var(--stage);object-fit:cover;flex:none}
+details.eqpick summary .nm{flex:1;font-weight:600;font-size:14px;min-width:0}
+details.eqpick summary .ct{font-size:12px;color:var(--muted);white-space:nowrap}
+details.eqpick summary .ct.on{color:var(--ink);font-weight:700}
+.pick{display:flex;align-items:center;gap:10px;padding:9px 12px;border-top:1px solid var(--line);font-size:14px;cursor:pointer}
+.pick input{width:20px;height:20px;accent-color:var(--chest);flex:none}
+.pick .dot{margin-left:auto}
+.sel-list li .mv{color:var(--muted);font-size:12px}
+.seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;background:var(--surface-2);padding:10px;font-weight:500}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.num-in{font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%;min-width:0;font-variant-numeric:tabular-nums}
+.big-k{font-family:var(--font-d);font-size:46px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.big-k small{font-size:18px;color:var(--muted);font-weight:600;margin-left:4px}
+.targets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.target{border:1px solid var(--line);border-radius:10px;padding:9px 10px;min-width:0}
+.target.on{border-color:var(--ink);background:var(--surface-2)}
+.target b{display:block;font-family:var(--font-d);font-size:21px;font-variant-numeric:tabular-nums}
+.target span{font-size:11.5px;color:var(--muted)}
+.kcal-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.kcal-list li{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:8px 10px;background:var(--surface-2);border-radius:9px}
+.kcal-list li span{color:var(--muted)}
+.kcal-list li b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.hint{font-size:12.5px;color:var(--muted)}
+
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
+.tabs-in{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);height:var(--nav-h)}
+.tab{border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;color:var(--muted);font-weight:500}
+.tab svg{width:24px;height:24px}
+.tab[aria-selected="true"]{color:var(--ink)}
+.tab[aria-selected="true"] svg{stroke:var(--chest)}
+
+.sheet{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+.sheet-head{display:flex;align-items:center;gap:10px;padding-block:10px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sheet-head h2{font-size:24px;text-transform:uppercase;line-height:1.05}
+.sheet-head .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.icon-btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;flex:none}
+.rest{font-size:12.5px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.viewer{position:relative;height:clamp(220px,36vh,380px);background:radial-gradient(110% 90% at 50% 80%,#2A2E35 0%,var(--stage) 75%);flex:none;touch-action:none;overflow:hidden}
+.viewer canvas{display:block;width:100%!important;height:100%!important;touch-action:none}
+.viewer-hint{position:absolute;left:0;right:0;bottom:10px;text-align:center;color:var(--stage-ink);font-size:12px;pointer-events:none;opacity:.85}
+.sheet-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-block:14px calc(24px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sheet-body-in{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+
+.ex{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:11px;border-left:5px solid var(--cc)}
+.ex-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ex-head h3{font-size:20px;text-transform:uppercase;line-height:1.1}
+.ex-meta{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ex-meta b{color:var(--ink);font-weight:600}
+.ex-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field label{font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.stepper{display:grid;grid-template-columns:42px minmax(0,1fr) 42px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface-2)}
+.stepper button{border:0;background:transparent;font-size:22px;line-height:1;height:46px}
+.stepper button:active{background:var(--line)}
+.stepper input{border:0;background:transparent;text-align:center;font-family:var(--font-d);font-size:24px;font-weight:700;color:var(--ink);width:100%;min-width:0;font-variant-numeric:tabular-nums}
+.stepper input:focus{outline:none;background:var(--surface)}
+.log-btn{width:100%}
+.sets{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.sets li{display:flex;align-items:center;gap:10px;font-size:14.5px;padding:7px 4px 7px 10px;background:var(--surface-2);border-radius:9px;font-variant-numeric:tabular-nums}
+.sets li .k{color:var(--muted);font-size:12.5px;width:44px}
+.sets li b{flex:1;font-weight:600}
+.sets li .pr{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.06em}
+.sets li button{border:0;background:none;color:var(--muted);width:34px;height:30px;font-size:18px}
+.add-ex{border:1px dashed var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.add-ex input{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+.add-ex .row > *{flex:1;min-width:130px}
+
+.toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 14px);transform:translateX(-50%);z-index:30;
+  background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 12px 10px 14px;display:flex;gap:12px;align-items:center;font-size:14px;width:max-content;max-width:calc(100% - 32px);box-shadow:0 6px 24px rgba(0,0,0,.25)}
+.toast button{border:0;background:transparent;color:var(--bg);font-weight:700;text-decoration:underline;padding:4px;flex:none}
+.toast.pr{background:var(--gold);color:#14171B;font-weight:600;flex-direction:column;align-items:flex-start;gap:2px;padding:12px 16px}
+.toast.pr .big{font-family:var(--font-d);font-size:24px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;line-height:1}
+.toast.pr button{color:#14171B}
+@media (prefers-reduced-motion:no-preference){
+  .sheet:not([hidden]){animation:up .22s ease-out}
+  @keyframes up{from{transform:translateY(24px);opacity:.4}to{transform:none;opacity:1}}
+  .toast.pr:not([hidden]){animation:pop .35s cubic-bezier(.2,1.6,.4,1)}
+  @keyframes pop{from{transform:translateX(-50%) scale(.85)}to{transform:translateX(-50%) scale(1)}}
+}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand"><i aria-hidden="true"></i>Χάρης <b>Gym</b></div>
+    <div class="today-chip" id="today-chip"></div>
+  </header>
+
+  <main>
+    <section class="view" id="v-gear" aria-label="Όργανα">
+      <div id="live-box"></div>
+      <div class="greet"><div class="eyebrow" id="greet-eyebrow">Καλώς ήρθες</div><p id="greet-text"></p><button type="button" id="greet-next">Άλλη ατάκα</button></div>
+      <div id="programs" class="view" style="gap:10px"></div>
+      <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+        <input id="search" type="search" placeholder="Αναζήτηση: π.χ. squat, curl, leg press" autocomplete="off" aria-label="Αναζήτηση οργάνου ή άσκησης"></div>
+      <div class="filters" id="filters" role="toolbar" aria-label="Φίλτρο μυϊκής ομάδας"></div>
+      <div id="groups" class="view"></div>
+    </section>
+
+    <section class="view" id="v-log" aria-label="Προπονήσεις" hidden>
+      <div class="banner sample-banner" hidden><span>Βλέπεις δείγμα δεδομένων. Σβήνεται μόλις καταχωρήσεις το πρώτο σου σετ.</span><button type="button" data-clear-sample>Διαγραφή τώρα</button></div>
+      <div class="panel">
+        <div class="sess-head"><div><div class="eyebrow">Τελευταίες 7 ημέρες</div><div class="sess-label" id="week-count"></div></div></div>
+        <div class="week" id="week"></div>
+        <div class="balance" id="balance"></div>
+      </div>
+      <h2 class="section-title">Σήμερα</h2>
+      <div id="today"></div>
+      <h2 class="section-title">Ιστορικό</h2>
+      <div class="history" id="history"></div>
+    </section>
+
+    <section class="view" id="v-prog" aria-label="Πρόοδος" hidden>
+      <div class="banner sample-banner" hidden><span>Βλέπεις δείγμα δεδομένων. Σβήνεται μόλις καταχωρήσεις το πρώτο σου σετ.</span><button type="button" data-clear-sample>Διαγραφή τώρα</button></div>
+      <div class="panel">
+        <label class="eyebrow" for="prog-ex">Άσκηση</label>
+        <select id="prog-ex"></select>
+        <div class="stats" id="prog-stats"></div>
+        <div class="chart-wrap" id="prog-chart"></div>
+      </div>
+      <div class="panel">
+        <div><div class="eyebrow">Κατηγορίες · 30 ημέρες</div><h3 style="font-size:20px;text-transform:uppercase">Σετ ανά μυϊκή ομάδα</h3></div>
+        <div class="musc" id="musc"></div>
+      </div>
+      <div class="panel">
+        <div><div class="eyebrow">Αντίγραφο ασφαλείας</div><h3 style="font-size:20px;text-transform:uppercase">Τα δεδομένα σου</h3></div>
+        <p class="hint" style="margin:0">Όλα αποθηκεύονται μόνο σε αυτό το κινητό. Κράτα ένα αντίγραφο στις Σημειώσεις από καιρό σε καιρό.</p>
+        <div class="row"><button class="btn" type="button" id="copy-backup">Αντιγραφή αντιγράφου</button><button class="btn ghost" type="button" id="show-restore">Επαναφορά</button></div>
+        <div id="restore-box" hidden>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <label class="hint" for="restore-text">Επικόλλησε εδώ το αντίγραφο:</label>
+            <textarea id="restore-text"></textarea>
+            <div class="row"><button class="btn" type="button" id="do-restore">Επαναφορά δεδομένων</button></div>
+          </div>
+        </div>
+        <div class="row"><button class="btn ghost" type="button" id="wipe">Διαγραφή όλων</button></div>
+      </div>
+    </section>
+
+    <section class="view" id="v-cal" aria-label="Θερμίδες" hidden>
+      <div class="panel">
+        <div><div class="eyebrow">Τα στοιχεία σου</div><h3 class="h3">Πόσες θερμίδες καις</h3></div>
+        <div class="seg" role="group" aria-label="Φύλο"><button type="button" data-sex="m" aria-pressed="true">Άνδρας</button><button type="button" data-sex="f" aria-pressed="false">Γυναίκα</button></div>
+        <div class="form-grid">
+          <div class="field"><label for="p-age">Ηλικία</label><input class="num-in" id="p-age" inputmode="numeric" placeholder="—"></div>
+          <div class="field"><label for="p-h">Ύψος cm</label><input class="num-in" id="p-h" inputmode="numeric" placeholder="—"></div>
+          <div class="field"><label for="p-w">Βάρος kg</label><input class="num-in" id="p-w" inputmode="decimal" placeholder="—"></div>
+        </div>
+        <div class="field"><label for="p-act">Πόσο κινείσαι μέσα στην εβδομάδα</label><select id="p-act"></select></div>
+        <div id="cal-res" class="view" style="gap:12px"></div>
+      </div>
+      <div class="panel">
+        <div><div class="eyebrow">Από την προπόνηση</div><h3 class="h3">Θερμίδες που έκαψες</h3></div>
+        <div id="cal-train" class="view" style="gap:12px"></div>
+      </div>
+      <p class="hint" style="margin:0">Οι αριθμοί είναι εκτιμήσεις. Ο ημερήσιος υπολογισμός βγαίνει με τον τύπο Mifflin-St Jeor. Για την προπόνηση χρησιμοποιούνται τιμές MET για κάθε είδος άσκησης, το βάρος σου και η διάρκεια.</p>
+    </section>
+  </main>
+</div>
+
+<nav class="tabs" aria-label="Κύρια πλοήγηση">
+  <div class="tabs-in" role="tablist">
+    <button class="tab" role="tab" data-tab="gear" aria-selected="true" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 12h20M5 8v8M8 6v12M16 6v12M19 8v8"/></svg>Όργανα</button>
+    <button class="tab" role="tab" data-tab="log" aria-selected="false" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2v4M16 2v4M4 10h16M8 14h3M8 17h6"/></svg>Προπονήσεις</button>
+    <button class="tab" role="tab" data-tab="prog" aria-selected="false" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M4 16l5-5 4 3 7-8"/><path d="M15 6h5v5"/></svg>Πρόοδος</button>
+    <button class="tab" role="tab" data-tab="cal" aria-selected="false" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c1 3 5 5.5 5 10.5a5 5 0 0 1-10 0c0-2.2 1-3.8 2.2-4.8 0 2 .9 3.2 2 3.4-.8-3 0-6.3.8-9.1z"/></svg>Θερμίδες</button>
+  </div>
+</nav>
+
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+  <div class="sheet-head">
+    <button class="icon-btn" id="sheet-close" type="button" aria-label="Πίσω"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="grow"><div class="eyebrow" id="sheet-group"></div><h2 id="sheet-title"></h2></div>
+    <div class="rest" id="rest" hidden></div>
+  </div>
+  <div class="viewer" id="viewer"><div class="viewer-hint">Σύρε για περιστροφή · δύο δάχτυλα για ζουμ</div></div>
+  <div class="sheet-body"><div class="sheet-body-in" id="sheet-body"></div></div>
+</div>
+
+<div class="sheet" id="builder" hidden role="dialog" aria-modal="true" aria-labelledby="b-title">
+  <div class="sheet-head">
+    <button class="icon-btn" id="b-close" type="button" aria-label="Κλείσιμο"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <div class="grow"><div class="eyebrow">Το δικό σου πρόγραμμα</div><h2 id="b-title">Νέο πρόγραμμα</h2></div>
+  </div>
+  <div class="sheet-body"><div class="sheet-body-in" id="b-body"></div></div>
+  <div class="b-foot"><button class="btn" id="b-save" type="button">Αποθήκευση προγράμματος</button></div>
+</div>
+
+<div class="overlay" id="summary" hidden role="dialog" aria-modal="true" aria-labelledby="sum-title"><div class="panel" id="sum-body"></div></div>
+
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+/* ================= ΧΑΡΗΣ: προσωποποίηση =================
+   Εδώ αλλάζεις/προσθέτεις ατάκες. {n} = μέρες, {s} = σετ, {ex} = άσκηση, {set} = π.χ. "80 kg × 6". */
+const HARIS = {
+  name: 'Χάρη',
+  nick: ['Ευρωπαίε', 'Χαζέ της Ευρώπης'],
+  greet: [
+    'ΝΑΙ ΚΑΛΑΑΑ! Πού είσαι φίλε;',
+    'Ο αδερφός που έγινε ΑΔΕΡΦΗΗΗ',
+    'Netflix και Πατατάκια!',
+    'Καλώς τον Ευρωπαίο!',
+    'Στον ΑΔΕΡΦΟΟΟ ΜΟΥΥΥ!',
+    'Πιπίλααα',
+    'Η 3η είναι η καλύτερη ταχύτητα!',
+    'ΝΙΑΟΥ'
+  ],
+  morning: 'Πρωί πρωί ο Χάρης στα σίδερα; Καφέ ήπιες τουλάχιστον;',
+  night: [
+    'Τέτοια ώρα καλύτερα να πιείς ένα mix και να τον παίξεις φίλεε!',
+    'Πήγαινε να κοιμηθείς στην Μαιρούλα καλύτερα!',
+    'Τέτοια ώρα άστο, τράβα για μπουρδελότσαρκα...',
+    'Ήρθες για να χαζέψεις κώλους, έτσι δεν είναι;'
+  ],
+  away: [
+    'Τι έγινε μικρέ; Αμέρικαν μπαρ το κάναμε εδώ μέσα;',
+    'Όλο στο τσιλ είσαι μικρέ, πήγαινε καλύτερα να πιάσεις κάνα καλαμάρι!',
+    'Καλώς τον τουρίστα!',
+    'Από άνθρωπος ξανά έγινες κούριερ...'
+  ],
+  // Στο ρεκόρ, η ατάκα μπαίνει ως τίτλος και από κάτω γράφει αυτόματα άσκηση και κιλά.
+  pr: [
+    'ΓΑΜΗΣΕ',
+    'ΦΟΥΛ ΜΕΤΑΛ ΤΖΑΚΕΤ!',
+    'Τόσες επαναλήψεις ούτε ο Άρνολντ στην στράντζα δεν κάνει!',
+    'ΟΛΤΙΟΟΟΟΟΟΟΝ',
+    'ΝΑΙ ΚΑΛΑΑΑ',
+    'ΧΑΡΙΤΟΣ ΜΕ ΤΗΝ ΚΟΟ',
+    'ΓΕΙΑ ΣΟΥ ΧΑΡΗ ΜΕ ΤΑ ΜΕΓΑΛΑ ΣΟΥ ΑΡΧΙΔΙΑ',
+    'Ο χαζός της Ευρώπης μόλις έγινε ο δυνατός της Ευρώπης'
+  ],
+  // Πολύ γρήγορη προπόνηση (κάτω από quickMins λεπτά) → ατάκα στη σύνοψη
+  quickMins: 20,
+  quick: [
+    'Τόσο γρήγορα δεν τελείωσε ούτε ο αδερφός με την πιπίλα',
+    'Λεγκενάκος...',
+    'Πιο πολύ γαμάει ο Αλτίν από ότι εσύ γυμνάζεσαι!'
+  ],
+  // Μεγάλη προπόνηση (από longMins λεπτά και πάνω) → μπράβο στη σύνοψη
+  longMins: 30,
+  long: [
+    'Αντρικός!',
+    'Φουλ μέταλ τζάκετ!',
+    'Γάμησε!',
+    'Τι λες τώρα φίλεε!'
+  ],
+  // Λεπτά διαλείμματος από το τελευταίο σετ → ατάκες
+  rest: {
+    3: ['ΒΛΑΚΑΑΑ! ΣΥΝΕΧΙΣΕ!', 'Γιατί με ξενερώνεις έτσι φίλεε;'],
+    5: ['Τόση ώρα διάλειμμα ούτε ο Κούριερ δεν κάνει!', 'ΞΕΝΕΡΑΑΑ'],
+    8: ['Τι έγινε φίλε; Αμέρικαν Μπαρ το κάναμε εδώ μέσα;', 'Ινοξεροκοπρίτη συνέχισε!'],
+    12: ['θα γαμηθείς μικρέ!']
+  }
+};
+
+/* ---------- catalogue ---------- */
+const CATS = {
+  chest:{n:'Στήθος'}, back:{n:'Πλάτη'}, shoulders:{n:'Ώμοι'}, arms:{n:'Χέρια'},
+  legs:{n:'Πόδια'}, glutes:{n:'Γλουτοί'}, core:{n:'Κορμός'}, cardio:{n:'Cardio'}
+};
+const SPLIT_OF = {chest:'push', shoulders:'push', arms:'push', back:'pull', legs:'legs', glutes:'legs', core:'core', cardio:'cardio'};
+const cc = m => `--cc:var(--${m})`;
+
+const X = (n, m, step, def, o) => Object.assign({n, m, s:SPLIT_OF[m], step, def}, o || {});
+const EX = {
+  bench:X('Barbell Bench Press','chest',2.5,[40,10]),
+  cgbench:X('Close-Grip Bench Press','arms',2.5,[30,10]),
+  skull:X('EZ-Bar Skull Crusher','arms',2.5,[20,10]),
+  inclinebb:X('Incline Barbell Bench Press','chest',2.5,[35,10]),
+  declinebb:X('Decline Barbell Bench Press','chest',2.5,[40,10]),
+  declinesitup:X('Decline Sit-Up','core',2.5,[0,15],{bw:true}),
+  incdb:X('Incline Dumbbell Press','chest',2,[16,10]),
+  dbbench:X('Dumbbell Bench Press','chest',2,[18,10]),
+  dbfly:X('Dumbbell Fly','chest',2,[10,12]),
+  dbshoulder:X('Seated Dumbbell Shoulder Press','shoulders',2,[14,10]),
+  pullover:X('Dumbbell Pullover','back',2,[14,12]),
+  squat:X('Barbell Back Squat','legs',2.5,[60,8]),
+  frontsquat:X('Front Squat','legs',2.5,[40,8]),
+  ohp:X('Overhead Press','shoulders',2.5,[30,8]),
+  rackpull:X('Rack Pull','back',2.5,[80,6]),
+  smithsquat:X('Smith Machine Squat','legs',5,[50,10]),
+  smithbench:X('Smith Machine Bench Press','chest',5,[40,10]),
+  smithohp:X('Smith Machine Shoulder Press','shoulders',5,[30,10]),
+  smithcalf:X('Smith Machine Calf Raise','legs',5,[40,15]),
+  deadlift:X('Conventional Deadlift','back',2.5,[70,6]),
+  rdl:X('Romanian Deadlift','legs',2.5,[50,10]),
+  bbrow:X('Bent-Over Barbell Row','back',2.5,[40,10]),
+  curl:X('Dumbbell Biceps Curl','arms',1,[10,10],{s:'pull'}),
+  hammer:X('Hammer Curl','arms',1,[10,10],{s:'pull'}),
+  lateral:X('Dumbbell Lateral Raise','shoulders',1,[6,15]),
+  dbrow:X('One-Arm Dumbbell Row','back',2,[20,10]),
+  shrug:X('Dumbbell Shrug','back',2,[20,12]),
+  goblet:X('Dumbbell Goblet Squat','legs',2,[16,12]),
+  lunge:X('Dumbbell Walking Lunge','legs',2,[10,10]),
+  ohtri:X('Overhead Dumbbell Triceps Extension','arms',1,[14,12]),
+  preacher:X('EZ-Bar Preacher Curl','arms',2.5,[20,10],{s:'pull'}),
+  dbpreacher:X('Dumbbell Preacher Curl','arms',1,[8,10],{s:'pull'}),
+  kbswing:X('Kettlebell Swing','glutes',4,[16,15]),
+  kbgoblet:X('Kettlebell Goblet Squat','legs',4,[16,12]),
+  tgu:X('Turkish Get-Up','core',4,[8,3]),
+  hipthrust:X('Barbell Hip Thrust','glutes',5,[60,10]),
+  glutebridge:X('Glute Bridge','glutes',2.5,[0,15],{bw:true}),
+  mchest:X('Machine Chest Press','chest',5,[40,10]),
+  pecdeck:X('Pec Deck Fly','chest',5,[35,12]),
+  revfly:X('Reverse Pec Deck','shoulders',5,[25,12],{s:'pull'}),
+  mshoulder:X('Machine Shoulder Press','shoulders',5,[30,10]),
+  pulldown:X('Lat Pulldown','back',5,[45,10]),
+  cgpulldown:X('Close-Grip Lat Pulldown','back',5,[40,10]),
+  crow:X('Seated Cable Row','back',5,[40,10]),
+  tbar:X('T-Bar Row','back',2.5,[30,10]),
+  cross:X('Cable Crossover','chest',2.5,[10,12]),
+  pushdown:X('Triceps Pushdown','arms',2.5,[20,12]),
+  ohcable:X('Overhead Cable Triceps Extension','arms',2.5,[15,12]),
+  facepull:X('Face Pull','shoulders',2.5,[15,15],{s:'pull'}),
+  cablelat:X('Cable Lateral Raise','shoulders',2.5,[5,15]),
+  cablecurl:X('Cable Biceps Curl','arms',2.5,[15,12],{s:'pull'}),
+  sapd:X('Straight-Arm Pulldown','back',2.5,[20,12]),
+  cablecrunch:X('Cable Crunch','core',5,[30,15]),
+  apullup:X('Assisted Pull-Up','back',5,[30,8],{assist:true}),
+  adip:X('Assisted Dip','arms',5,[30,8],{assist:true}),
+  legpress:X('Leg Press','legs',5,[100,12]),
+  lpcalf:X('Leg Press Calf Raise','legs',5,[80,15]),
+  hack:X('Hack Squat','legs',5,[40,10]),
+  legext:X('Leg Extension','legs',5,[35,12]),
+  lyingcurl:X('Lying Leg Curl','legs',5,[30,12]),
+  seatedcurl:X('Seated Leg Curl','legs',5,[30,12]),
+  abduct:X('Hip Abduction','glutes',5,[40,15]),
+  adduct:X('Hip Adduction','legs',5,[40,15]),
+  seatedcalf:X('Seated Calf Raise','legs',5,[30,15]),
+  standcalf:X('Standing Calf Raise','legs',5,[50,15]),
+  backext:X('45° Back Extension','back',2.5,[0,12],{bw:true}),
+  pullup:X('Pull-Up','back',2.5,[0,8],{bw:true}),
+  chinup:X('Chin-Up','back',2.5,[0,8],{bw:true}),
+  dips:X('Parallel Bar Dip','arms',2.5,[0,10],{bw:true}),
+  hlr:X('Hanging Leg Raise','core',2.5,[0,12],{bw:true}),
+  kneeraise:X("Captain's Chair Knee Raise",'core',2.5,[0,15],{bw:true}),
+  mcrunch:X('Machine Crunch','core',5,[30,15]),
+  crunch:X('Crunch','core',2.5,[0,20],{bw:true}),
+  plank:X('Plank','core',5,[0,60],{timed:true}),
+  abwheel:X('Ab Wheel Rollout','core',2.5,[0,10],{bw:true}),
+  russian:X('Russian Twist','core',2,[5,20]),
+  benchdip:X('Bench Dip','arms',2.5,[0,12],{bw:true}),
+  incfly:X('Incline Dumbbell Fly','chest',2,[10,12]),
+  arnold:X('Arnold Press','shoulders',2,[12,10]),
+  frontraise:X('Dumbbell Front Raise','shoulders',1,[6,12]),
+  concentration:X('Concentration Curl','arms',1,[8,10],{s:'pull'}),
+  kickback:X('Dumbbell Triceps Kickback','arms',1,[6,12]),
+  bulgarian:X('Bulgarian Split Squat','legs',2,[10,10]),
+  stepup:X('Dumbbell Step-Up','legs',2,[10,10]),
+  wristcurl:X('Wrist Curl','arms',1,[8,15],{s:'pull'}),
+  sumo:X('Sumo Deadlift','legs',2.5,[70,6]),
+  goodmorning:X('Good Morning','legs',2.5,[30,10]),
+  bbcurl:X('Barbell Curl','arms',2.5,[25,10],{s:'pull'}),
+  uprightrow:X('Barbell Upright Row','shoulders',2.5,[25,10]),
+  landmine:X('Landmine Press','shoulders',2.5,[15,10]),
+  sacrow:X('Single-Arm Cable Row','back',2.5,[20,12]),
+  glutekick:X('Cable Glute Kickback','glutes',2.5,[10,12]),
+  woodchop:X('Cable Woodchopper','core',2.5,[15,12]),
+  pallof:X('Pallof Press','core',2.5,[10,12]),
+  pushup:X('Push-Up','chest',2.5,[0,15],{bw:true}),
+  sideplank:X('Side Plank','core',5,[0,40],{timed:true}),
+  mountain:X('Mountain Climber','core',2.5,[0,30],{bw:true}),
+  burpee:X('Burpee','core',2.5,[0,10],{bw:true}),
+  run:X('Treadmill Run','cardio',0,[20,3],{cardio:true}),
+  inclinewalk:X('Incline Treadmill Walk','cardio',0,[15,1.5],{cardio:true}),
+  bike:X('Stationary Bike','cardio',0,[20,8],{cardio:true}),
+  elliptical:X('Elliptical','cardio',0,[20,3],{cardio:true}),
+  row:X('Indoor Rowing','cardio',0,[10,2],{cardio:true}),
+  stair:X('Stair Climber','cardio',0,[10,40],{cardio:true, ub:'όροφοι', sb:5})
+};
+
+const GROUPS = [
+  {id:'free', n:'Ελεύθερα βάρη'},
+  {id:'upper', n:'Μηχανήματα πάνω σώματος'},
+  {id:'lower', n:'Μηχανήματα ποδιών'},
+  {id:'core', n:'Σωματικό βάρος & κορμός'},
+  {id:'cardio', n:'Cardio'}
+];
+const E = (id, g, n, ex, build) => ({id, g, n, ex, build});
+const EQUIP = [
+  E('bench','free','Flat Bench Press',['bench','cgbench','skull','benchdip'],buildBench),
+  E('incline','free','Incline Bench Press',['inclinebb'],buildIncline),
+  E('decline','free','Decline Bench Press',['declinebb','declinesitup'],buildDecline),
+  E('adj','free','Adjustable Bench',['incdb','dbbench','dbfly','incfly','dbshoulder','arnold','pullover'],buildAdj),
+  E('rack','free','Power Rack',['squat','frontsquat','ohp','rackpull'],buildRack),
+  E('smith','free','Smith Machine',['smithsquat','smithbench','smithohp','smithcalf'],buildSmith),
+  E('platform','free','Deadlift Platform / Barbell',['deadlift','sumo','rdl','goodmorning','bbrow','bbcurl','uprightrow'],buildPlatform),
+  E('dbrack','free','Dumbbell Rack',['curl','hammer','concentration','wristcurl','lateral','frontraise','dbrow','shrug','goblet','lunge','bulgarian','stepup','ohtri','kickback'],buildDbRack),
+  E('preacher','free','Preacher Curl Bench',['preacher','dbpreacher'],buildPreacher),
+  E('kb','free','Kettlebells',['kbswing','kbgoblet','tgu'],buildKb),
+  E('hipthrust','free','Hip Thrust Bench',['hipthrust','glutebridge'],buildHipThrust),
+  E('mchest','upper','Chest Press Machine',['mchest'],buildChestPress),
+  E('pecdeck','upper','Pec Deck / Rear Delt Fly',['pecdeck','revfly'],buildPecDeck),
+  E('mshoulder','upper','Shoulder Press Machine',['mshoulder'],buildShoulderPress),
+  E('lat','upper','Lat Pulldown',['pulldown','cgpulldown'],buildLat),
+  E('crow','upper','Seated Cable Row',['crow'],buildSeatedRow),
+  E('tbar','upper','T-Bar Row / Landmine',['tbar','landmine'],buildTbar),
+  E('cable','upper','Cable Crossover',['cross','pushdown','ohcable','facepull','cablelat','cablecurl','sapd','sacrow','glutekick','woodchop','pallof','cablecrunch'],buildCable),
+  E('assist','upper','Assisted Pull-Up / Dip',['apullup','adip'],buildAssist),
+  E('legpress','lower','Leg Press',['legpress','lpcalf'],buildLegPress),
+  E('hack','lower','Hack Squat',['hack'],buildHack),
+  E('legext','lower','Leg Extension',['legext'],buildLegExt),
+  E('lyingcurl','lower','Lying Leg Curl',['lyingcurl'],buildLyingCurl),
+  E('seatedcurl','lower','Seated Leg Curl',['seatedcurl'],buildSeatedCurl),
+  E('abduct','lower','Hip Abductor / Adductor',['abduct','adduct'],buildAbductor),
+  E('seatedcalf','lower','Seated Calf Raise',['seatedcalf'],buildSeatedCalf),
+  E('standcalf','lower','Standing Calf Raise',['standcalf'],buildStandCalf),
+  E('tower','core','Power Tower',['pullup','chinup','dips','hlr','kneeraise'],buildTower),
+  E('backext','core','45° Back Extension',['backext'],buildBackExt),
+  E('crunchm','core','Ab Crunch Machine',['mcrunch'],buildCrunch),
+  E('mat','core','Mat Area / Bodyweight',['crunch','plank','sideplank','abwheel','russian','pushup','mountain','burpee'],buildMat),
+  E('tread','cardio','Treadmill',['run','inclinewalk'],buildTread),
+  E('bike','cardio','Stationary Bike',['bike'],buildBike),
+  E('ellip','cardio','Elliptical Trainer',['elliptical'],buildElliptical),
+  E('rower','cardio','Rowing Machine',['row'],buildRower),
+  E('stair','cardio','Stair Climber',['stair'],buildStair)
+];
+const eqById = id => EQUIP.find(e => e.id === id);
+const eqOfEx = {};
+function indexEquip(){
+  EQUIP.forEach(e => { e.cats = [...new Set(e.ex.map(x => EX[x].m))]; e.ex.forEach(x => eqOfEx[x] = e.id); });
+}
+
+/* ---------- formatting ---------- */
+const nf = new Intl.NumberFormat('el-GR', {maximumFractionDigits:1});
+const fnum = v => nf.format(v);
+const dayFmt = new Intl.DateTimeFormat('el-GR', {weekday:'short', day:'numeric', month:'short'});
+const wdFmt = new Intl.DateTimeFormat('el-GR', {weekday:'narrow'});
+const shortFmt = new Intl.DateTimeFormat('el-GR', {day:'numeric', month:'numeric'});
+function dayKey(t){ const d = new Date(t); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function keyToDate(k){ const [y,m,d] = k.split('-').map(Number); return new Date(y, m-1, d); }
+function fmtSet(id, s){
+  const e = EX[id];
+  if (e.cardio) return `${fnum(s.a)} λεπτά · ${fnum(s.b)} ${e.ub || 'km'}`;
+  if (e.timed) return (s.a > 0 ? `+${fnum(s.a)} kg · ` : '') + `${s.b}″`;
+  if (e.assist) return `βοήθεια ${fnum(s.a)} kg × ${s.b}`;
+  if (e.bw) return s.a > 0 ? `+${fnum(s.a)} kg × ${s.b}` : `${s.b} επαναλήψεις`;
+  return `${fnum(s.a)} kg × ${s.b}`;
+}
+const e1rm = s => s.a * (1 + s.b / 30);
+function metric(id, s){
+  const e = EX[id];
+  if (e.cardio || e.timed) return s.b + s.a * .001;
+  if (e.assist) return (500 - s.a) * 100 + s.b;
+  if (e.bw) return s.a * 100 + s.b;
+  return e1rm(s);
+}
+
+/* ---------- storage ---------- */
+const KEY = 'gymlog3d.v1';
+let DB;
+function load(){
+  try { const r = localStorage.getItem(KEY); if (r){ const d = JSON.parse(r); if (d && Array.isArray(d.sets)){ d.custom = Array.isArray(d.custom) ? d.custom : []; d.profile = d.profile && typeof d.profile === 'object' ? d.profile : {}; d.programs = Array.isArray(d.programs) ? d.programs : defaultPrograms(); d.sessions = Array.isArray(d.sessions) ? d.sessions : []; d.active = d.active && d.active.start ? d.active : null; return d; } } } catch(e){}
+  return {sets: sampleData(), custom: [], profile: {}, programs: defaultPrograms(), sessions: [], active: null};
+}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch(e){} }
+let seq = Date.now();
+const uid = () => (seq++).toString(36);
+function registerCustom(){
+  EQUIP.forEach(e => { e.ex = e.ex.filter(x => !x.startsWith('c_')); });
+  Object.keys(EX).forEach(k => { if (k.startsWith('c_')) delete EX[k]; });
+  DB.custom.forEach(c => {
+    if (!CATS[c.m] || !eqById(c.eq)) return;
+    EX[c.id] = X(c.n, c.m, 2.5, [20,10], {custom:true});
+    eqById(c.eq).ex.push(c.id);
+  });
+  indexEquip();
+}
+
+function sampleData(){
+  const plans = {
+    push:[['bench',57.5,2.5,[10,8,8]],['incdb',18,1,[10,10,9]],['pushdown',22.5,1.25,[12,12,10]],['lateral',7,.5,[15,14,12]]],
+    pull:[['pulldown',50,2.5,[10,10,8]],['crow',45,2.5,[10,10,10]],['curl',11,.5,[10,9,8]],['pullup',0,0,[8,7,6]]],
+    legs:[['squat',75,2.5,[8,8,6]],['legpress',130,5,[12,12,10]],['lyingcurl',30,2.5,[12,12,10]],['plank',0,0,[60]],['run',20,0,[3.1]]]
+  };
+  const order = ['push','pull','legs'];
+  const out = []; let n = 0;
+  for (let off = 33; off >= 1; off -= 2){
+    const kind = order[n % 3], cycle = Math.floor(n / 3); n++;
+    const d = new Date(); d.setDate(d.getDate() - off); d.setHours(18, 30, 0, 0);
+    let t = d.getTime();
+    plans[kind].forEach(([ex, base, inc, reps]) => {
+      const e = EX[ex];
+      if (e.cardio){ out.push({id:uid(), ex, a:base, b:+(reps[0] + cycle*0.1).toFixed(1), t, sample:true}); t += 25*60000; return; }
+      if (e.timed){ out.push({id:uid(), ex, a:0, b:reps[0] + cycle*5, t, sample:true}); t += 120000; return; }
+      const kg = Math.round((base + inc*cycle) / e.step) * e.step;
+      reps.forEach(r => { out.push({id:uid(), ex, a:kg, b:r, t, sample:true}); t += 150000; });
+      t += 120000;
+    });
+  }
+  return out;
+}
+const hasSample = () => DB.sets.some(s => s.sample);
+
+/* ---------- queries ---------- */
+function setsByDay(){
+  const m = {};
+  DB.sets.forEach(s => { if (!EX[s.ex]) return; const k = dayKey(s.t); (m[k] = m[k] || []).push(s); });
+  Object.values(m).forEach(a => a.sort((x,y) => x.t - y.t));
+  return m;
+}
+function setsOf(ex){ return DB.sets.filter(s => s.ex === ex).sort((a,b) => a.t - b.t); }
+function summarize(sets){
+  const musc = {}, split = {};
+  let vol = 0;
+  sets.forEach(s => {
+    const e = EX[s.ex];
+    musc[e.m] = (musc[e.m] || 0) + 1;
+    split[e.s] = (split[e.s] || 0) + 1;
+    if (!e.cardio && !e.timed && !e.assist) vol += s.a * s.b;
+  });
+  const main = (split.push||0) + (split.pull||0) + (split.legs||0);
+  let label;
+  if (!main) label = split.cardio ? 'Cardio' : 'Κορμός';
+  else {
+    const share = k => (split[k]||0) / main;
+    if (share('push') >= .7) label = 'Push · ώθηση';
+    else if (share('pull') >= .7) label = 'Pull · έλξη';
+    else if (share('legs') >= .7) label = 'Legs · πόδια';
+    else if (share('legs') < .2) label = 'Πάνω σώμα';
+    else label = 'Όλο το σώμα';
+  }
+  const rec = recordedMins(sets);
+  const mins = rec !== null ? rec : sets.length ? Math.max(1, Math.round((sets[sets.length-1].t - sets[0].t) / 60000) + 2) : 0;
+  const ranked = Object.entries(musc).sort((a,b) => b[1] - a[1]);
+  return {label, musc:ranked, vol, mins, n:sets.length};
+}
+function groupByEx(sets){
+  const g = []; const idx = {};
+  sets.forEach(s => { if (!(s.ex in idx)){ idx[s.ex] = g.length; g.push({ex:s.ex, sets:[]}); } g[idx[s.ex]].sets.push(s); });
+  return g;
+}
+
+/* ---------- 3D ---------- */
+let R = null, scene, cam, floor, M = {}, models = {}, current = null, rafId = 0;
+const view = {yaw:.7, pitch:.35, dist:4, target:window.THREE ? new THREE.Vector3() : null, base:4};
+const thumbs = {};
+function init3D(){
+  if (!window.THREE) return false;
+  try { R = new THREE.WebGLRenderer({antialias:true, alpha:true, preserveDrawingBuffer:true}); } catch(e){ R = null; return false; }
+  R.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  R.outputEncoding = THREE.sRGBEncoding;
+  R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap;
+  R.setClearColor(0x000000, 0);
+  scene = new THREE.Scene();
+  cam = new THREE.PerspectiveCamera(34, 4/3, .05, 60);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x3a3d44, .75));
+  const key = new THREE.DirectionalLight(0xffffff, 1.1); key.position.set(3, 6, 4); key.castShadow = true;
+  key.shadow.mapSize.set(1024, 1024); const sc = key.shadow.camera; sc.left = sc.bottom = -3; sc.right = sc.top = 3; sc.far = 20;
+  key.shadow.bias = -0.0005; scene.add(key);
+  const rim = new THREE.DirectionalLight(0x9fb7ff, .45); rim.position.set(-4, 3, -3); scene.add(rim);
+  const lin = c => new THREE.Color(c).convertSRGBToLinear();
+  floor = new THREE.Mesh(new THREE.CircleGeometry(1, 64), new THREE.MeshStandardMaterial({color:lin(0x111317), roughness:1}));
+  floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
+  const S = (c, m, r) => new THREE.MeshStandardMaterial({color:lin(c), metalness:m, roughness:r});
+  M = {
+    frame:S(0x2f343b,.55,.45), steel:S(0x8d949d,.85,.32), chrome:S(0xd5d9de,1,.18), pad:S(0x161618,0,.85),
+    rubber:S(0x121314,0,.95), stack:S(0x1d1f22,.6,.4), red:S(0xc8102e,.1,.55), blue:S(0x1a4fa0,.1,.55),
+    yellow:S(0xf2b705,.1,.55), green:S(0x1e8449,.1,.55), console:S(0x23262b,.2,.6), kb:S(0x2b2d30,.6,.5),
+    wood:S(0x9a7448,0,.8), mat:S(0x2c3e66,0,.95), ball:S(0x6b1d1d,0,.8),
+    screen:new THREE.MeshStandardMaterial({color:lin(0x0b3b3b), emissive:lin(0x17b3b3), emissiveIntensity:.6, roughness:.3}),
+    cable:S(0x111111,0,.6)
+  };
+  return true;
+}
+function box(g,w,h,d,m,x=0,y=0,z=0,rx=0){ const o = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), m); o.position.set(x,y,z); o.rotation.x = rx; g.add(o); return o; }
+function cyl(g,r,l,m,x=0,y=0,z=0,axis='y',seg=20){ const o = new THREE.Mesh(new THREE.CylinderGeometry(r,r,l,seg), m); if (axis==='x') o.rotation.z = Math.PI/2; if (axis==='z') o.rotation.x = Math.PI/2; o.position.set(x,y,z); g.add(o); return o; }
+function sphere(g,r,m,x,y,z){ const o = new THREE.Mesh(new THREE.SphereGeometry(r,20,14), m); o.position.set(x,y,z); g.add(o); return o; }
+function torus(g,r,t,m,x,y,z,arc){ const o = new THREE.Mesh(new THREE.TorusGeometry(r,t,10,24,arc || Math.PI*2), m); o.position.set(x,y,z); g.add(o); return o; }
+function plate(g,r,m,x,y,z,axis='x',th=.045){ cyl(g,r,th,m,x,y,z,axis,36); cyl(g,r*.3,th+.006,M.steel,x,y,z,axis,20); }
+function barbell(g,y,z,pm,pr=.225,n=1){
+  cyl(g,.014,1.32,M.chrome,0,y,z,'x');
+  [-1,1].forEach(sx => {
+    cyl(g,.025,.42,M.chrome,sx*.87,y,z,'x');
+    cyl(g,.036,.03,M.chrome,sx*.66,y,z,'x');
+    for (let i=0;i<n;i++) plate(g,pr - i*.04,pm,sx*(.71 + i*.05),y,z,'x');
+  });
+}
+function dumbbell(g,x,y,z,s=1,axis='x'){
+  cyl(g,.016,.14*s,M.chrome,x,y,z,axis);
+  const off = .07*s + .045*s;
+  [-1,1].forEach(k => { const p = [x,y,z]; const i = axis==='x'?0:axis==='y'?1:2; p[i] += k*off; cyl(g,.06*s,.09*s,M.rubber,p[0],p[1],p[2],axis,6); });
+}
+function kettlebell(g,x,y,z,s=1,m){ sphere(g,.085*s,m||M.kb,x,y+.085*s,z); torus(g,.055*s,.013*s,m||M.kb,x,y+.15*s,z,Math.PI); }
+function stack(g,x,z,h=1.9,rot=0){
+  const s = new THREE.Group(); s.position.set(x,0,z); s.rotation.y = rot; g.add(s);
+  [-.12,.12].forEach(dx => cyl(s,.011,h,M.chrome,dx,h/2,0));
+  for (let i=0;i<14;i++) box(s,.32,.038,.15,i===13?M.red:M.stack,0,.08 + i*.043,0);
+  box(s,.42,.05,.2,M.frame,0,h,0); box(s,.42,.06,.24,M.frame,0,.03,0);
+  [-.2,.2].forEach(dx => box(s,.04,h,.04,M.frame,dx,h/2,-.1));
+  cyl(s,.004,h - .7,M.cable,0,.75 + (h-.7)/2,0);
+  return s;
+}
+function seatUnit(g,z=0,seatY=.48,backH=.7,tilt=-.12){
+  box(g,.1,seatY - .06,.1,M.frame,0,(seatY - .06)/2,z);
+  box(g,.48,.08,.45,M.pad,0,seatY,z);
+  box(g,.48,backH,.08,M.pad,0,seatY + backH/2 + .05,z - .27,tilt);
+  box(g,.08,seatY + backH,.08,M.frame,0,(seatY + backH)/2,z - .34);
+}
+const grp = () => new THREE.Group();
+
+function buildBench(){ const g = grp();
+  box(g,.3,.08,1.2,M.pad,0,.44,.05); box(g,.08,.05,1.1,M.frame,0,.375,.05);
+  [-.42,.5].forEach(z => { box(g,.38,.04,.06,M.frame,0,.02,z); box(g,.05,.36,.05,M.frame,0,.2,z); });
+  [-.55,.55].forEach(x => { box(g,.06,1.15,.06,M.frame,x,.575,-.62); box(g,.08,.04,.55,M.frame,x,.02,-.62); box(g,.05,.07,.09,M.steel,x,1.03,-.58); });
+  box(g,1.16,.05,.05,M.frame,0,.3,-.62);
+  barbell(g,1.08,-.56,M.red,.225,2); return g; }
+function buildIncline(){ const g = grp();
+  box(g,.32,.08,.38,M.pad,0,.46,.35); box(g,.1,.4,.1,M.frame,0,.22,.35);
+  box(g,.3,.08,.95,M.pad,0,.85,-.12,.75);
+  box(g,.08,.08,1.4,M.frame,0,.03,0); box(g,.5,.05,.08,M.frame,0,.03,.6);
+  [-.52,.52].forEach(x => { box(g,.06,1.6,.06,M.frame,x,.8,-.5); box(g,.08,.04,.6,M.frame,x,.02,-.5); box(g,.05,.07,.09,M.steel,x,1.42,-.46); });
+  box(g,1.1,.05,.05,M.frame,0,.4,-.5);
+  barbell(g,1.47,-.44,M.blue,.225,1); return g; }
+function buildDecline(){ const g = grp();
+  box(g,.3,.08,1.2,M.pad,0,.55,0,-.28);
+  box(g,.08,.06,1.4,M.frame,0,.03,0);
+  box(g,.08,.5,.08,M.frame,0,.28,-.35); box(g,.08,.72,.08,M.frame,0,.36,.45);
+  cyl(g,.05,.36,M.pad,0,.78,.62,'x'); cyl(g,.05,.36,M.pad,0,.66,.5,'x');
+  [-.52,.52].forEach(x => { box(g,.06,1.0,.06,M.frame,x,.5,-.65); box(g,.08,.04,.5,M.frame,x,.02,-.65); box(g,.05,.07,.09,M.steel,x,.92,-.61); });
+  barbell(g,.97,-.59,M.yellow,.225,1); return g; }
+function buildAdj(){ const g = grp();
+  box(g,.09,.06,1.25,M.frame,0,.2,0); box(g,.5,.05,.07,M.frame,0,.03,.58); box(g,.5,.05,.07,M.frame,0,.03,-.58);
+  [-.58,.58].forEach(z => box(g,.06,.18,.06,M.frame,0,.11,z));
+  [-.2,.2].forEach(x => cyl(g,.04,.04,M.rubber,x,.04,-.62,'x'));
+  box(g,.08,.24,.08,M.frame,0,.33,.22); box(g,.3,.07,.42,M.pad,0,.47,.24);
+  box(g,.3,.07,.82,M.pad,0,.72,-.28,.62);
+  box(g,.06,.42,.06,M.steel,0,.43,-.34,-.45);
+  dumbbell(g,.5,.07,.25,1.05,'z'); dumbbell(g,.5,.07,-.05,1.05,'z');
+  return g; }
+function buildRack(){ const g = grp();
+  [[-.6,-.55],[.6,-.55],[-.6,.55],[.6,.55]].forEach(([x,z]) => box(g,.075,2.25,.075,M.frame,x,1.125,z));
+  [-.55,.55].forEach(z => box(g,1.28,.07,.07,M.frame,0,2.22,z));
+  [-.6,.6].forEach(x => { box(g,.07,.07,1.18,M.frame,x,2.22,0); box(g,.1,.06,1.45,M.frame,x,.03,0); cyl(g,.022,1.15,M.steel,x,.62,0,'z'); box(g,.05,.08,.1,M.steel,x,1.36,.6); });
+  box(g,1.28,.06,.1,M.frame,0,.03,-.55);
+  cyl(g,.017,1.3,M.chrome,0,2.32,.55,'x');
+  barbell(g,1.42,.6,M.blue,.225,2);
+  [-.7,.7].forEach(x => { cyl(g,.025,.22,M.steel,x + Math.sign(x)*.1,.32,-.55,'x'); plate(g,.225,M.yellow,x + Math.sign(x)*.12,.32,-.55,'x'); plate(g,.17,M.green,x + Math.sign(x)*.17,.32,-.55,'x'); });
+  return g; }
+function buildSmith(){ const g = grp();
+  [[-.75,-.35],[.75,-.35],[-.75,.35],[.75,.35]].forEach(([x,z]) => box(g,.08,2.2,.08,M.frame,x,1.1,z));
+  [-.35,.35].forEach(z => box(g,1.58,.08,.08,M.frame,0,2.2,z));
+  [-.75,.75].forEach(x => { box(g,.08,.08,.78,M.frame,x,2.2,0); box(g,.12,.06,1.0,M.frame,x,.03,0); });
+  [-.6,.6].forEach(x => { cyl(g,.02,2.1,M.chrome,x,1.12,0); box(g,.1,.12,.1,M.steel,x,1.25,0); cyl(g,.03,.06,M.steel,x,.45,0); });
+  barbell(g,1.25,0,M.green,.2,2);
+  box(g,.3,.08,1.1,M.pad,0,.44,.05); box(g,.08,.4,.08,M.frame,0,.2,.05);
+  return g; }
+function buildPlatform(){ const g = grp();
+  box(g,1.0,.05,2.3,M.wood,0,.025,0);
+  [-.83,.83].forEach(x => box(g,.66,.05,2.3,M.rubber,x,.025,0));
+  barbell(g,.275,.15,M.red,.225,2);
+  return g; }
+function buildDbRack(){ const g = grp();
+  [-1.05,1.05].forEach(x => { box(g,.06,.85,.06,M.frame,x,.425,.15); box(g,.06,.85,.06,M.frame,x,.425,-.2); box(g,.08,.04,.6,M.frame,x,.02,-.02); });
+  box(g,2.16,.04,.22,M.frame,0,.45,.12); box(g,2.16,.04,.22,M.frame,0,.78,-.18);
+  const sizes = [.78,.86,.94,1.02,1.1,1.18];
+  sizes.forEach((s,i) => { const x = -.88 + i*.35; dumbbell(g,x - .07,.47 + .06*s,.12,s*1.05,'z'); dumbbell(g,x + .07,.47 + .06*s,.12,s*1.05,'z'); });
+  sizes.forEach((s,i) => { const x = -.88 + i*.35; dumbbell(g,x - .07,.8 + .048*s,-.18,s*.8,'z'); dumbbell(g,x + .07,.8 + .048*s,-.18,s*.8,'z'); });
+  return g; }
+function buildPreacher(){ const g = grp();
+  box(g,.6,.06,.95,M.frame,0,.03,0);
+  box(g,.08,.45,.08,M.frame,0,.25,.28); box(g,.38,.08,.32,M.pad,0,.5,.28);
+  box(g,.08,.82,.08,M.frame,0,.43,-.1);
+  box(g,.5,.06,.4,M.pad,0,.92,-.12,-.65);
+  [-.22,.22].forEach(x => box(g,.04,.12,.04,M.steel,x,1.0,-.38));
+  cyl(g,.014,1.2,M.chrome,0,1.08,-.4,'x');
+  [-1,1].forEach(k => plate(g,.12,M.green,k*.5,1.08,-.4,'x',.03));
+  return g; }
+function buildKb(){ const g = grp();
+  [-.85,.85].forEach(x => { box(g,.05,.7,.05,M.frame,x,.35,.15); box(g,.05,.7,.05,M.frame,x,.35,-.15); });
+  box(g,1.75,.04,.4,M.frame,0,.3,0); box(g,1.75,.04,.4,M.frame,0,.68,0);
+  const cols = [M.kb,M.kb,M.red,M.blue,M.yellow];
+  [-.64,-.32,0,.32,.64].forEach((x,i) => kettlebell(g,x,.32,0,.8 + i*.07,cols[i]));
+  [-.64,-.32,0,.32,.64].forEach((x,i) => kettlebell(g,x,.7,0,.7 + i*.05));
+  return g; }
+function buildHipThrust(){ const g = grp();
+  box(g,1.2,.36,.28,M.frame,0,.18,-.45); box(g,1.2,.1,.32,M.pad,0,.41,-.45);
+  box(g,1.4,.02,1.0,M.rubber,0,.01,.2);
+  barbell(g,.235,.25,M.red,.225,1);
+  cyl(g,.05,.4,M.pad,0,.235,.25,'x');
+  return g; }
+function buildChestPress(){ const g = grp();
+  box(g,.9,.06,1.2,M.frame,0,.03,-.1); seatUnit(g,.1,.48,.75,-.08);
+  box(g,.1,1.6,.1,M.frame,0,.8,-.3); box(g,.9,.08,.1,M.frame,0,1.55,-.3);
+  [-.4,.4].forEach(x => { box(g,.05,.05,.7,M.steel,x,1.1,.12); box(g,.05,.45,.05,M.steel,x,1.35,-.22); cyl(g,.02,.25,M.rubber,x,1.0,.45); });
+  stack(g,.75,-.3,1.6); return g; }
+function buildPecDeck(){ const g = grp();
+  box(g,.9,.06,1.3,M.frame,0,.03,-.15); seatUnit(g,.1,.48,.75,-.05);
+  box(g,.1,2.0,.1,M.frame,0,1.0,-.35); box(g,1.0,.08,.1,M.frame,0,1.95,-.35);
+  [-1,1].forEach(k => { box(g,.42,.05,.05,M.steel,k*.24,1.92,-.1); box(g,.05,.6,.05,M.steel,k*.45,1.62,-.1); box(g,.08,.5,.22,M.pad,k*.45,1.2,.0); });
+  stack(g,0,-.8,1.9); return g; }
+function buildShoulderPress(){ const g = grp();
+  box(g,.9,.06,1.2,M.frame,0,.03,-.1); seatUnit(g,.1,.48,.9,-.05);
+  box(g,.1,1.8,.1,M.frame,0,.9,-.3);
+  [-.32,.32].forEach(x => { box(g,.05,.05,.5,M.steel,x,1.5,.0); cyl(g,.02,.16,M.rubber,x,1.5,.27,'x'); box(g,.05,.3,.05,M.steel,x,1.62,-.25); });
+  stack(g,-.75,-.3,1.7); return g; }
+function buildLat(){ const g = grp();
+  box(g,.8,.06,1.45,M.frame,0,.03,0);
+  [-.25,.25].forEach(x => box(g,.09,2.3,.09,M.frame,x,1.15,-.62));
+  box(g,.6,.1,.12,M.frame,0,2.3,-.62);
+  box(g,.1,.1,1.35,M.frame,0,2.3,-.02);
+  stack(g,0,-.62,1.85);
+  cyl(g,.06,.03,M.steel,0,2.22,.58,'x',24);
+  cyl(g,.004,.82,M.cable,0,1.8,.6);
+  cyl(g,.016,1.15,M.chrome,0,1.38,.6,'x');
+  [-1,1].forEach(k => { const e = cyl(g,.016,.22,M.chrome,k*.64,1.33,.6,'x'); e.rotation.z = Math.PI/2 + k*.5; cyl(g,.021,.14,M.rubber,k*.44,1.38,.6,'x'); });
+  box(g,.1,.42,.1,M.frame,0,.24,.3); box(g,.46,.08,.4,M.pad,0,.48,.3);
+  box(g,.06,.7,.06,M.frame,0,.4,.52); cyl(g,.06,.46,M.pad,0,.78,.52,'x');
+  return g; }
+function buildSeatedRow(){ const g = grp();
+  box(g,.5,.06,2.0,M.frame,0,.03,0);
+  box(g,.1,.38,.1,M.frame,0,.21,.55); box(g,.42,.08,.4,M.pad,0,.44,.55);
+  box(g,.55,.32,.05,M.frame,0,.3,-.15,-.4);
+  stack(g,0,-.85,1.6);
+  box(g,.1,.1,.4,M.frame,0,.5,-.6);
+  cyl(g,.05,.03,M.steel,0,.5,-.42,'x');
+  cyl(g,.004,.4,M.cable,0,.5,-.2,'z');
+  torus(g,.06,.012,M.chrome,0,.5,.02);
+  return g; }
+function buildTbar(){ const g = grp();
+  box(g,.9,.05,1.7,M.frame,0,.025,0);
+  box(g,.12,.12,.12,M.steel,0,.11,-.75);
+  const a = 1.234, dir = new THREE.Vector3(0, Math.cos(a), Math.sin(a));
+  const bar = new THREE.Group(); bar.position.set(0,.11,-.75); bar.rotation.x = a; g.add(bar);
+  cyl(bar,.025,1.5,M.chrome,0,.75,0);
+  plate(bar,.225,M.red,0,1.25,0,'y'); plate(bar,.225,M.red,0,1.31,0,'y');
+  const hp = new THREE.Vector3(0,.11,-.75).addScaledVector(dir, 1.05);
+  cyl(g,.022,.5,M.rubber,0,hp.y + .05,hp.z,'x');
+  [-.3,.3].forEach(x => box(g,.22,.05,.32,M.rubber,x,.075,.55));
+  return g; }
+function buildCable(){ const g = grp();
+  [-1.25,1.25].forEach(x => {
+    box(g,.7,.06,.6,M.frame,x,.03,0);
+    [-.24,.24].forEach(dx => box(g,.09,2.35,.09,M.frame,x+dx,1.175,0));
+    stack(g,x,0,1.95,0);
+    const ix = x - Math.sign(x)*.38;
+    box(g,.06,1.9,.06,M.steel,ix,1.2,.1);
+    box(g,.12,.1,.12,M.frame,ix,1.5,.14);
+    cyl(g,.035,.03,M.chrome,ix,1.42,.2,'z',20);
+    cyl(g,.004,.25,M.cable,ix,1.28,.2);
+    torus(g,.055,.011,M.chrome,ix,1.12,.2);
+  });
+  box(g,2.6,.1,.1,M.frame,0,2.38,0);
+  cyl(g,.05,.04,M.steel,0,2.3,.08,'z',20);
+  return g; }
+function buildAssist(){ const g = grp();
+  box(g,1.0,.06,1.3,M.frame,0,.03,-.1);
+  [-.42,.42].forEach(x => box(g,.1,2.35,.1,M.frame,x,1.175,-.45));
+  box(g,.94,.1,.1,M.frame,0,2.35,-.45);
+  [-1,1].forEach(k => { box(g,.06,.06,.5,M.frame,k*.42,2.3,-.2); cyl(g,.02,.2,M.rubber,k*.36,2.3,.02,'x'); box(g,.05,.05,.38,M.steel,k*.3,1.3,-.05); box(g,.25,.05,.2,M.frame,k*.35,.42,.25); });
+  box(g,.45,.06,.32,M.pad,0,.78,.12); box(g,.05,.05,.6,M.steel,0,.68,-.15,.3);
+  stack(g,0,-.85,2.1); return g; }
+function buildLegPress(){ const g = grp();
+  box(g,.95,.07,2.15,M.frame,0,.035,0);
+  const rails = grp(); rails.position.set(0,.36,-.15); rails.rotation.x = -Math.PI/4; g.add(rails);
+  [-.32,.32].forEach(x => box(rails,.07,.07,1.75,M.steel,x,0,.85));
+  box(rails,.76,.06,.52,M.frame,0,.07,1.05);
+  box(rails,.78,.62,.05,M.frame,0,.32,.82);
+  [-1,1].forEach(k => { cyl(rails,.025,.26,M.steel,k*.5,.1,1.18,'x'); plate(rails,.225,M.green,k*.47,.1,1.18,'x'); plate(rails,.225,M.green,k*.52,.1,1.18,'x'); });
+  [-.36,.36].forEach(x => box(g,.08,1.4,.08,M.frame,x,.7,.95));
+  box(g,.1,.32,.1,M.frame,0,.2,-.78); box(g,.52,.08,.45,M.pad,0,.4,-.78);
+  box(g,.52,.07,.72,M.pad,0,.72,-1.04,.95);
+  [-1,1].forEach(k => cyl(g,.018,.22,M.rubber,k*.33,.46,-.7,'z'));
+  return g; }
+function buildHack(){ const g = grp();
+  box(g,1.0,.07,2.0,M.frame,0,.035,-.1);
+  const s = grp(); s.position.set(0,.07,.5); s.rotation.x = -.7; g.add(s);
+  [-.3,.3].forEach(x => box(s,.07,2.0,.07,M.steel,x,1.0,0));
+  box(s,.5,.75,.07,M.pad,0,1.0,.08);
+  [-.15,.15].forEach(x => box(s,.12,.08,.22,M.pad,x,1.42,.17));
+  [-1,1].forEach(k => { cyl(s,.025,.25,M.steel,k*.45,.95,-.02,'x'); plate(s,.225,M.blue,k*.47,.95,-.02,'x'); });
+  box(g,.8,.04,.55,M.frame,0,.2,.78,-.3);
+  [-.35,.35].forEach(x => box(g,.08,1.55,.08,M.frame,x,.78,-.75));
+  return g; }
+function buildLegExt(){ const g = grp();
+  box(g,.62,.06,1.35,M.frame,0,.03,-.1);
+  box(g,.1,.42,.1,M.frame,0,.24,0); box(g,.46,.08,.5,M.pad,0,.49,0);
+  box(g,.46,.62,.08,M.pad,0,.87,-.28,-.15);
+  box(g,.08,.85,.08,M.frame,0,.45,-.36);
+  [-1,1].forEach(k => cyl(g,.018,.24,M.rubber,k*.29,.5,.05,'z'));
+  box(g,.05,.05,.14,M.steel,.27,.48,.3);
+  box(g,.05,.42,.05,M.steel,.27,.28,.36,-.12);
+  cyl(g,.06,.42,M.pad,0,.1,.42,'x'); cyl(g,.012,.42,M.steel,0,.1,.42,'x');
+  stack(g,0,-.68,1.6);
+  return g; }
+function buildLyingCurl(){ const g = grp();
+  box(g,.5,.06,1.6,M.frame,0,.03,0);
+  [-.45,.45].forEach(z => box(g,.1,.66,.1,M.frame,0,.36,z));
+  box(g,.42,.09,.75,M.pad,0,.74,-.25); box(g,.42,.09,.55,M.pad,0,.78,.35,-.25);
+  box(g,.05,.4,.05,M.steel,.25,.62,.72,.2);
+  cyl(g,.06,.45,M.pad,0,.48,.78,'x'); cyl(g,.06,.45,M.pad,0,.6,.86,'x');
+  cyl(g,.018,.5,M.rubber,0,.75,-.66,'x');
+  stack(g,.75,-.35,1.5,Math.PI/2); return g; }
+function buildSeatedCurl(){ const g = grp();
+  box(g,.62,.06,1.3,M.frame,0,.03,-.1); seatUnit(g,0,.5,.7,-.2);
+  cyl(g,.06,.45,M.pad,0,.7,.16,'x'); box(g,.05,.36,.05,M.steel,.27,.85,.16);
+  cyl(g,.06,.45,M.pad,0,.48,.45,'x'); box(g,.05,.4,.05,M.steel,.27,.6,.38,-.4);
+  stack(g,-.72,-.25,1.6,Math.PI/2); return g; }
+function buildAbductor(){ const g = grp();
+  box(g,.7,.06,1.4,M.frame,0,.03,-.15); seatUnit(g,0,.5,.7,-.3);
+  [-1,1].forEach(k => { box(g,.05,.3,.45,M.pad,k*.3,.64,.25); box(g,.05,.05,.4,M.steel,k*.25,.45,.15); box(g,.14,.03,.2,M.frame,k*.25,.36,.55); });
+  stack(g,0,-.9,1.6); return g; }
+function buildSeatedCalf(){ const g = grp();
+  box(g,.5,.06,1.1,M.frame,0,.03,0);
+  box(g,.1,.42,.1,M.frame,0,.24,-.25); box(g,.4,.08,.35,M.pad,0,.48,-.25);
+  box(g,.42,.08,.18,M.pad,0,.66,.12);
+  box(g,.06,.06,.9,M.steel,.25,.62,-.02);
+  box(g,.42,.08,.18,M.frame,0,.12,.3);
+  cyl(g,.025,.25,M.steel,.35,.62,-.38,'x'); plate(g,.225,M.green,.38,.62,-.38,'x'); plate(g,.225,M.green,.43,.62,-.38,'x');
+  return g; }
+function buildStandCalf(){ const g = grp();
+  box(g,.8,.06,1.0,M.frame,0,.03,0);
+  [-.3,.3].forEach(x => box(g,.08,2.0,.08,M.frame,x,1.0,-.35));
+  box(g,.6,.06,.08,M.steel,0,1.55,-.22);
+  [-.17,.17].forEach(x => box(g,.18,.08,.25,M.pad,x,1.55,-.05));
+  box(g,.6,.1,.25,M.frame,0,.11,.15);
+  stack(g,0,-.7,2.0); return g; }
+function buildTower(){ const g = grp();
+  [-.45,.45].forEach(x => { box(g,.08,.06,1.15,M.frame,x,.03,0); box(g,.075,2.2,.075,M.frame,x*.9,1.1,-.25); box(g,.06,.06,.45,M.frame,x*.9,2.15,-.04); });
+  cyl(g,.017,1.15,M.chrome,0,2.18,.16,'x');
+  [-1,1].forEach(k => { box(g,.05,.05,.42,M.steel,k*.32,1.22,.08); cyl(g,.022,.14,M.rubber,k*.32,1.22,.26,'z'); box(g,.12,.06,.3,M.pad,k*.26,1.3,-.05); });
+  box(g,.4,.55,.06,M.pad,0,1.05,-.21);
+  box(g,.75,.05,.05,M.frame,0,.78,-.25);
+  return g; }
+function buildBackExt(){ const g = grp();
+  box(g,.6,.06,1.35,M.frame,0,.03,0);
+  box(g,.08,.08,1.2,M.frame,0,.6,.0,.75);
+  box(g,.45,.09,.32,M.pad,0,.98,-.32,.75);
+  box(g,.4,.04,.3,M.steel,0,.22,.42,-.3);
+  cyl(g,.05,.4,M.pad,0,.38,.33,'x');
+  [-1,1].forEach(k => cyl(g,.018,.2,M.rubber,k*.3,1.02,-.2,'z'));
+  return g; }
+function buildCrunch(){ const g = grp();
+  box(g,.7,.06,1.2,M.frame,0,.03,-.1); seatUnit(g,0,.5,.65,-.08);
+  [-1,1].forEach(k => { box(g,.05,.05,.5,M.steel,k*.24,1.42,-.02); box(g,.12,.16,.08,M.pad,k*.18,1.25,.2); });
+  cyl(g,.05,.4,M.pad,0,.2,.35,'x');
+  stack(g,.75,-.3,1.6,Math.PI/2); return g; }
+function buildMat(){ const g = grp();
+  box(g,.62,.02,1.7,M.mat,0,.01,0);
+  cyl(g,.09,.06,M.rubber,.55,.09,.35,'x'); cyl(g,.012,.32,M.chrome,.55,.09,.35,'x');
+  sphere(g,.12,M.ball,-.55,.12,-.35);
+  kettlebell(g,-.55,0,.4,.7);
+  return g; }
+function buildTread(){ const g = grp();
+  box(g,.82,.14,1.95,M.frame,0,.12,.1); box(g,.56,.02,1.75,M.rubber,0,.2,.15);
+  box(g,.88,.24,.36,M.frame,0,.2,-.88);
+  [-.38,.38].forEach(x => { box(g,.06,1.12,.08,M.frame,x,.78,-.9,.12); box(g,.045,.045,.55,M.steel,x,1.12,-.62); });
+  box(g,.82,.32,.09,M.console,0,1.34,-.96,-.45);
+  box(g,.46,.19,.012,M.screen,0,1.36,-.915,-.45);
+  return g; }
+function buildBike(){ const g = grp();
+  [-.45,.45].forEach(z => box(g,.5,.05,.08,M.frame,0,.03,z));
+  box(g,.07,.07,.95,M.frame,0,.32,0);
+  cyl(g,.24,.06,M.steel,0,.36,-.3,'x',32);
+  box(g,.06,.75,.06,M.frame,0,.62,.28,.25); box(g,.2,.06,.28,M.pad,0,.98,.36);
+  box(g,.06,.85,.06,M.frame,0,.7,-.35,-.25);
+  cyl(g,.018,.45,M.rubber,0,1.1,-.48,'x'); box(g,.18,.12,.04,M.console,0,1.18,-.44,-.4);
+  cyl(g,.07,.03,M.steel,0,.36,.02,'x'); [-1,1].forEach(k => box(g,.1,.02,.06,M.rubber,k*.11,.3,.02));
+  return g; }
+function buildElliptical(){ const g = grp();
+  box(g,.15,.08,1.7,M.frame,0,.04,.1); box(g,.55,.05,.12,M.frame,0,.03,.9);
+  cyl(g,.26,.22,M.frame,0,.32,-.7,'x',32);
+  [-1,1].forEach(k => { box(g,.07,.04,.95,M.steel,k*.16,.24,.15,-.08); box(g,.15,.04,.32,M.pad,k*.16,.3,.35); box(g,.04,1.25,.04,M.steel,k*.26,.88,-.38,-.22); cyl(g,.02,.2,M.rubber,k*.26,1.45,-.24); });
+  box(g,.07,1.1,.07,M.frame,0,.85,-.65); box(g,.35,.2,.06,M.console,0,1.42,-.6,-.4);
+  return g; }
+function buildRower(){ const g = grp();
+  box(g,.12,.06,2.2,M.steel,0,.36,.1);
+  box(g,.38,.36,.06,M.frame,0,.18,1.17); box(g,.5,.05,.22,M.frame,0,.03,-1.0);
+  cyl(g,.28,.18,M.frame,0,.4,-1.0,'x',40); cyl(g,.12,.19,M.steel,0,.4,-1.0,'x',30);
+  [-1,1].forEach(k => box(g,.12,.03,.26,M.pad,k*.1,.43,-.6,.75));
+  box(g,.32,.07,.3,M.pad,0,.44,.25);
+  cyl(g,.015,.7,M.steel,0,.82,-.9).rotation.x = .25;
+  box(g,.2,.15,.04,M.console,0,1.16,-.82,-.3);
+  cyl(g,.016,.5,M.chrome,0,.55,-.74,'x');
+  return g; }
+function buildStair(){ const g = grp();
+  box(g,.95,.08,1.3,M.frame,0,.04,0);
+  [-.38,.38].forEach(x => box(g,.06,1.3,1.05,M.frame,x,.7,-.1));
+  for (let i=0;i<5;i++) box(g,.68,.04,.26,M.rubber,0,.2 + i*.22,.32 - i*.2);
+  [-1,1].forEach(k => box(g,.04,.04,.7,M.steel,k*.44,1.3,.1));
+  box(g,.55,.28,.08,M.console,0,1.6,-.55,-.35); box(g,.36,.16,.012,M.screen,0,1.62,-.505,-.35);
+  return g; }
+
+function getModel(id){
+  if (models[id]) return models[id];
+  const eq = eqById(id);
+  const inner = eq.build(); inner.traverse(o => { if (o.isMesh){ o.castShadow = true; o.receiveShadow = true; } });
+  const pivot = new THREE.Group(); pivot.add(inner);
+  const bb = new THREE.Box3().setFromObject(inner), c = new THREE.Vector3(), sz = new THREE.Vector3();
+  bb.getCenter(c); bb.getSize(sz);
+  inner.position.set(-c.x, -bb.min.y, -c.z);
+  models[id] = {pivot, size:sz, r:Math.max(sz.x, sz.z, sz.y*.9) * .62 + .2};
+  return models[id];
+}
+function place(){
+  const {yaw, pitch, dist} = view, t = view.target;
+  cam.position.set(t.x + dist*Math.cos(pitch)*Math.sin(yaw), t.y + dist*Math.sin(pitch), t.z + dist*Math.cos(pitch)*Math.cos(yaw));
+  cam.lookAt(t);
+}
+function frameModel(m, aspect){
+  view.target.set(0, m.size.y*.42, 0);
+  const fov = cam.fov * Math.PI/180;
+  view.dist = m.r / Math.tan(fov/2) / Math.min(1, aspect*.95) * 1.05; view.base = view.dist;
+}
+function makeThumbs(){
+  if (!R) return;
+  const W = 320, H = 240;
+  R.setSize(W, H, false); cam.aspect = W/H; cam.updateProjectionMatrix();
+  floor.visible = false;
+  EQUIP.forEach(eq => {
+    try {
+      const m = getModel(eq.id); scene.add(m.pivot);
+      view.yaw = .75; view.pitch = .32; frameModel(m, W/H); view.dist *= .92; place();
+      R.render(scene, cam); thumbs[eq.id] = R.domElement.toDataURL('image/png');
+      scene.remove(m.pivot);
+    } catch(e){}
+  });
+  floor.visible = true;
+}
+
+const viewerEl = $('#viewer');
+let lastInteract = 0;
+function startViewer(id){
+  if (!R) return;
+  const m = getModel(id);
+  if (current) scene.remove(current.pivot);
+  current = m; scene.add(m.pivot);
+  floor.scale.setScalar(m.r * 1.2);
+  if (R.domElement.parentNode !== viewerEl) viewerEl.prepend(R.domElement);
+  resizeViewer();
+  view.yaw = .75; view.pitch = .3; frameModel(m, viewerEl.clientWidth / viewerEl.clientHeight);
+  cancelAnimationFrame(rafId);
+  const loop = () => {
+    if (performance.now() - lastInteract > 2500) view.yaw += .0035;
+    place(); R.render(scene, cam); rafId = requestAnimationFrame(loop);
+  };
+  loop();
+}
+function stopViewer(){ cancelAnimationFrame(rafId); rafId = 0; }
+function resizeViewer(){
+  if (!R || !viewerEl.clientWidth) return;
+  const w = viewerEl.clientWidth, h = viewerEl.clientHeight;
+  R.setSize(w, h, false); cam.aspect = w/h; cam.updateProjectionMatrix();
+}
+window.addEventListener('resize', () => { if (!$('#sheet').hidden) resizeViewer(); });
+const ptrs = new Map(); let pinch0 = 0, dist0 = 0;
+viewerEl.addEventListener('pointerdown', e => { viewerEl.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY}); lastInteract = performance.now();
+  if (ptrs.size === 2){ const [a,b] = [...ptrs.values()]; pinch0 = Math.hypot(a.x-b.x, a.y-b.y); dist0 = view.dist; } });
+viewerEl.addEventListener('pointermove', e => {
+  const p = ptrs.get(e.pointerId); if (!p) return; lastInteract = performance.now();
+  if (ptrs.size === 1){
+    view.yaw -= (e.clientX - p.x) * .011;
+    view.pitch = Math.min(1.25, Math.max(.04, view.pitch + (e.clientY - p.y) * .007));
+  }
+  p.x = e.clientX; p.y = e.clientY;
+  if (ptrs.size === 2 && pinch0){ const [a,b] = [...ptrs.values()]; setDist(dist0 * pinch0 / Math.hypot(a.x-b.x, a.y-b.y)); }
+});
+const endPtr = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch0 = 0; };
+viewerEl.addEventListener('pointerup', endPtr); viewerEl.addEventListener('pointercancel', endPtr);
+viewerEl.addEventListener('wheel', e => { e.preventDefault(); lastInteract = performance.now(); setDist(view.dist * (1 + e.deltaY * .001)); }, {passive:false});
+function setDist(d){ const b = view.base || 4; view.dist = Math.min(b*1.8, Math.max(b*.45, d)); }
+
+/* ---------- greeting ---------- */
+function greeting(){
+  const h = new Date().getHours();
+  const real = DB.sets.filter(s => !s.sample);
+  const today = real.filter(s => dayKey(s.t) === dayKey(Date.now())).length;
+  const last = real.reduce((m,s) => Math.max(m, s.t), 0);
+  const away = last ? Math.floor((Date.now() - last) / 864e5) : 0;
+  if (away >= 5 && !today) return pick(HARIS.away).replace('{n}', away);
+  if (h >= 22 || h < 4) return pick(HARIS.night);
+  const pool = HARIS.greet.slice();
+  if (h < 11) pool.push(HARIS.morning, HARIS.morning);
+  return pick(pool);
+}
+function renderGreeting(){
+  const h = new Date().getHours();
+  $('#greet-eyebrow').textContent = h < 12 ? 'Καλημέρα, ' + pick(HARIS.nick) : (h < 18 ? 'Γεια σου, ' + HARIS.name : 'Καλησπέρα, ' + pick(HARIS.nick));
+  $('#greet-text').textContent = greeting();
+}
+
+/* ---------- UI: gear ---------- */
+let filter = 'all', query = '';
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+function renderFilters(){
+  const opts = [['all','Όλα']].concat(Object.keys(CATS).map(k => [k, CATS[k].n]));
+  $('#filters').innerHTML = opts.map(([k,n]) => `<button type="button" class="fchip" data-filter="${k}" aria-pressed="${filter===k}">${k==='all'?'':`<span class="dot" style="${cc(k)}"></span>`}${n}</button>`).join('');
+}
+function lastUse(eq){ let t = 0; DB.sets.forEach(s => { if (eqOfEx[s.ex] === eq.id && s.t > t) t = s.t; }); return t; }
+function cardHTML(e){
+  const lu = lastUse(e);
+  const img = thumbs[e.id] ? `<img src="${thumbs[e.id]}" alt="">` : `<span>3D</span>`;
+  const q = norm(query.trim());
+  const hit = q && !norm(e.n).includes(q) ? e.ex.find(x => norm(EX[x].n).includes(q)) : null;
+  return `<button type="button" class="card" data-eq="${e.id}">
+    <div class="thumb">${img}</div>
+    <div class="card-body"><div class="card-name">${esc(e.n)}</div>
+    <div class="card-dots">${e.cats.map(c => `<span class="dot" style="${cc(c)}" title="${CATS[c].n}"></span>`).join('')}</div>
+    <div class="card-meta">${hit ? esc(EX[hit].n) : `${e.ex.length} ${e.ex.length===1?'άσκηση':'ασκήσεις'}${lu ? ' · ' + (dayKey(lu)===dayKey(Date.now()) ? 'σήμερα' : dayFmt.format(lu)) : ''}`}</div></div>
+  </button>`;
+}
+function renderGear(){
+  renderFilters(); renderPrograms(); renderLive();
+  const q = norm(query.trim());
+  const list = EQUIP.filter(e => (filter === 'all' || e.cats.includes(filter)) &&
+    (!q || norm(e.n).includes(q) || e.ex.some(x => norm(EX[x].n).includes(q))));
+  if (!list.length){ $('#groups').innerHTML = `<div class="panel empty">Δεν βρέθηκε όργανο ή άσκηση για «${esc(query)}». Αν λείπει, άνοιξε το πιο κοντινό όργανο και πάτα «Πρόσθεσε άσκηση».</div>`; return; }
+  $('#groups').innerHTML = GROUPS.map(gr => {
+    const items = list.filter(e => e.g === gr.id); if (!items.length) return '';
+    return `<div class="view" style="gap:10px"><h2 class="group-title">${gr.n}<span>${items.length}</span></h2><div class="grid">${items.map(cardHTML).join('')}</div></div>`;
+  }).join('');
+}
+
+/* ---------- UI: sheet ---------- */
+let openEq = null;
+let openProg = null, shownEq = null;
+function openSheet(id){
+  const eq = eqById(id); if (!eq) return;
+  openEq = eq; openProg = null;
+  $('#sheet-title').textContent = eq.n;
+  $('#sheet-group').textContent = GROUPS.find(g => g.id === eq.g).n;
+  renderSheetBody();
+  $('#sheet').hidden = false;
+  document.body.style.overflow = 'hidden';
+  requestAnimationFrame(() => showEq(id));
+  updateRest();
+}
+function showEq(id){ shownEq = id; startViewer(id); $$('.eq-label').forEach(b => b.classList.toggle('on', b.dataset.show === id)); }
+function renderSheetBody(){
+  if (openProg) return renderProgBody();
+  const eq = openEq;
+  $('#sheet-body').innerHTML = eq.ex.map(renderEx).join('') + `
+    <div class="add-ex">
+      <div class="eyebrow">Λείπει κάποια άσκηση σε αυτό το όργανο;</div>
+      <input id="new-ex-name" placeholder="π.χ. Single-Leg Press" autocomplete="off" aria-label="Όνομα άσκησης">
+      <div class="row">
+        <select id="new-ex-m" aria-label="Μυϊκή ομάδα">${Object.keys(CATS).filter(k => k !== 'cardio').map(k => `<option value="${k}"${k===eq.cats[0]?' selected':''}>${CATS[k].n}</option>`).join('')}</select>
+        <button type="button" class="btn ghost" id="add-ex">Πρόσθεσε άσκηση</button>
+      </div>
+    </div>`;
+}
+function closeSheet(){
+  $('#sheet').hidden = true; document.body.style.overflow = ''; stopViewer(); openEq = null; openProg = null;
+  renderAll();
+}
+function renderEx(id){
+  const e = EX[id];
+  const all = setsOf(id);
+  const today = dayKey(Date.now());
+  const todays = all.filter(s => dayKey(s.t) === today);
+  const prev = all.filter(s => dayKey(s.t) !== today);
+  const last = all[all.length - 1];
+  const init = last ? [last.a, last.b] : e.def;
+  let meta = todays.length ? `Σήμερα: <b>${todays.length} ${e.cardio ? 'καταχωρήσεις' : 'σετ'}</b>` : 'Πρώτη φορά. Ξεκίνα ελαφριά.';
+  if (prev.length){
+    const lastDay = dayKey(prev[prev.length-1].t);
+    const ld = prev.filter(s => dayKey(s.t) === lastDay);
+    const top = ld.reduce((a,b) => metric(id,b) > metric(id,a) ? b : a);
+    const best = prev.reduce((a,b) => metric(id,b) > metric(id,a) ? b : a);
+    meta = `Τελευταία (${dayFmt.format(keyToDate(lastDay))}): <b>${fmtSet(id, top)}</b> · Ρεκόρ: <b>${fmtSet(id, best)}</b>`;
+  }
+  const fa = e.cardio ? 'Λεπτά' : e.assist ? 'Βοήθεια kg' : (e.bw || e.timed) ? 'Επιπλέον kg' : 'Κιλά';
+  const fb = e.cardio ? (e.ub ? 'Όροφοι' : 'Χιλιόμετρα') : e.timed ? 'Δευτερόλεπτα' : 'Επαναλήψεις';
+  const sa = e.cardio ? 5 : e.step, sb = e.cardio ? (e.sb || .5) : e.timed ? 5 : 1;
+  const prevBest = prev.length ? Math.max(...prev.map(s => metric(id,s))) : Infinity;
+  let runBest = prevBest;
+  const rows = todays.map((s,i) => {
+    const v = metric(id, s); const pr = v > runBest; if (pr) runBest = v;
+    return `<li><span class="k">${e.cardio ? '' : 'Σετ ' + (i+1)}</span><b>${fmtSet(id, s)}</b>${pr ? '<span class="pr">ΡΕΚΟΡ</span>' : ''}<button type="button" data-del="${s.id}" aria-label="Διαγραφή σετ">×</button></li>`;
+  }).join('');
+  return `<div class="ex" data-ex="${id}" style="${cc(e.m)}">
+    <div class="ex-head"><h3>${esc(e.n)}</h3><span class="chip"><span class="dot" style="${cc(e.m)}"></span>${CATS[e.m].n}</span></div>
+    <div class="ex-meta">${meta}${e.assist ? '<br>Λιγότερη βοήθεια = πιο δυνατός.' : ''}</div>
+    <div class="ex-inputs">
+      <div class="field"><label for="a-${id}">${fa}</label><div class="stepper"><button type="button" data-step="${-sa}" data-for="a-${id}" aria-label="Λιγότερα">−</button><input id="a-${id}" inputmode="decimal" value="${fnum(init[0])}"><button type="button" data-step="${sa}" data-for="a-${id}" aria-label="Περισσότερα">+</button></div></div>
+      <div class="field"><label for="b-${id}">${fb}</label><div class="stepper"><button type="button" data-step="${-sb}" data-for="b-${id}" aria-label="Λιγότερες">−</button><input id="b-${id}" inputmode="${e.cardio?'decimal':'numeric'}" value="${fnum(init[1])}"><button type="button" data-step="${sb}" data-for="b-${id}" aria-label="Περισσότερες">+</button></div></div>
+    </div>
+    <button type="button" class="btn log-btn" data-log="${id}">${e.cardio ? 'Καταχώρηση' : 'Καταχώρηση σετ'}</button>
+    ${rows ? `<ol class="sets">${rows}</ol>` : ''}
+  </div>`;
+}
+const parseNum = v => { const n = parseFloat(String(v).replace(/\s/g,'').replace(',', '.')); return isFinite(n) ? n : 0; };
+function rerenderEx(id){ const el = document.querySelector(`.ex[data-ex="${id}"]`); if (el) el.outerHTML = renderEx(id); }
+
+function logSet(id){
+  const a = parseNum($('#a-'+id).value), b = parseNum($('#b-'+id).value);
+  const e = EX[id];
+  if (!e.cardio && b <= 0){ toast(e.timed ? 'Βάλε πόσα δευτερόλεπτα κράτησες.' : 'Βάλε πόσες επαναλήψεις έκανες.'); return; }
+  if (e.cardio && a <= 0){ toast('Βάλε πόσα λεπτά κράτησε.'); return; }
+  let cleared = false;
+  if (hasSample()){ DB.sets = DB.sets.filter(s => !s.sample); cleared = true; }
+  const prior = DB.sets.filter(s => s.ex === id);
+  const priorBest = prior.length ? Math.max(...prior.map(s => metric(id, s))) : null;
+  const s = {id:uid(), ex:id, a:Math.max(0,a), b:(e.cardio ? Math.max(0,b) : Math.round(b)), t:Date.now()};
+  DB.sets.push(s); save();
+  if (cleared && (openEq || openProg)) renderSheetBody(); else rerenderEx(id);
+  restNotified = {}; updateRest();
+  const undo = () => { DB.sets = DB.sets.filter(x => x.id !== s.id); save(); rerenderEx(id); updateRest(); };
+  if (priorBest !== null && metric(id, s) > priorBest){
+    toast('Νέο ρεκόρ · ' + e.n + ': ' + fmtSet(id, s), undo, 'pr', pick(HARIS.pr).replace('{ex}', e.n).replace('{set}', fmtSet(id, s)));
+  } else {
+    const kc = e.cardio && +DB.profile.w ? ' · ~' + Math.round(kcalCardio(id, s, +DB.profile.w)) + ' kcal' : '';
+    toast(cleared ? 'Καταχωρήθηκε. Το δείγμα δεδομένων διαγράφηκε.' : 'Καταχωρήθηκε: ' + fmtSet(id, s) + kc, undo);
+  }
+}
+function delSet(sid){
+  const s = DB.sets.find(x => x.id === sid); if (!s) return;
+  DB.sets = DB.sets.filter(x => x.id !== sid); save(); rerenderEx(s.ex); updateRest();
+  toast('Το σετ διαγράφηκε.', () => { DB.sets.push(s); save(); rerenderEx(s.ex); updateRest(); });
+}
+function addCustom(){
+  const name = $('#new-ex-name').value.trim(), m = $('#new-ex-m').value;
+  if (!name){ toast('Γράψε το όνομα της άσκησης.'); return; }
+  const c = {id:'c_' + uid(), n:name.slice(0, 60), m, eq:openEq.id};
+  DB.custom.push(c); save(); registerCustom(); renderSheetBody();
+  toast('Προστέθηκε: ' + c.n);
+}
+
+/* rest timer + jokes */
+let restNotified = {};
+function updateRest(){
+  const el = $('#rest');
+  const today = dayKey(Date.now());
+  const t = DB.sets.filter(s => !s.sample && dayKey(s.t) === today).reduce((m,s) => Math.max(m, s.t), 0);
+  const d = (Date.now() - t) / 1000;
+  // Σταματάει αν η προπόνηση έκλεισε με «Τέλος» μετά το τελευταίο σετ
+  const ended = !DB.active && DB.sessions.some(x => x.end >= t && x.start <= t);
+  const active = !!t && d <= 15*60 && !ended;
+  const txt = active ? 'Διάλειμμα ' + Math.floor(d/60) + ':' + String(Math.floor(d%60)).padStart(2,'0') : '';
+  el.hidden = !active || $('#sheet').hidden; el.textContent = txt;
+  renderChip(active ? txt : null);
+  if (active){
+    for (const th of [12,8,5,3]){
+      if (d >= th*60){ if (d < th*60 + 60 && !restNotified[th]){ restNotified[th] = true; toast(pick(HARIS.rest[th])); } break; }
+    }
+  }
+}
+setInterval(() => { updateRest(); tickLive(); }, 1000);
+
+/* ---------- UI: log ---------- */
+function renderChip(restTxt){
+  const chip = $('#today-chip');
+  if (DB.active){ chip.className = 'today-chip live-chip'; chip.innerHTML = `⏱ <b>${clock(Date.now() - DB.active.start)}</b>` + (restTxt ? ' · ' + restTxt.replace('Διάλειμμα ', '⏸ ') : ''); return; }
+  if (restTxt){ chip.className = 'today-chip resting'; chip.textContent = restTxt; return; }
+  const n = DB.sets.filter(s => dayKey(s.t) === dayKey(Date.now())).length;
+  chip.className = 'today-chip';
+  chip.innerHTML = n ? `Σήμερα · <b class="num">${n}</b> σετ` : 'Σήμερα · ξεκούραση';
+}
+function sessionBlock(sets){
+  const sm = summarize(sets);
+  const groups = groupByEx(sets);
+  return {sm, html:`
+    <div class="chips">${sm.musc.map(([m,n]) => `<span class="chip"><span class="dot" style="${cc(m)}"></span>${CATS[m].n} · ${n}</span>`).join('')}</div>
+    <div class="stats">
+      <div class="stat"><b>${sm.n}</b><span>σετ</span></div>
+      <div class="stat"><b>${sm.vol >= 1000 ? fnum(sm.vol/1000) + 't' : fnum(sm.vol)}</b><span>όγκος (kg×επαν.)</span></div>
+      <div class="stat"><b>${sm.mins}′</b><span>διάρκεια</span></div>
+      ${(k => k === null ? '' : `<div class="stat"><b>~${k}</b><span>kcal</span></div>`)(sessionKcal(sets))}
+    </div>
+    <ul class="exlist">${groups.map(g => `<li><span class="dot" style="${cc(EX[g.ex].m)}"></span><span>${esc(EX[g.ex].n)}</span><span class="sets-inline">${g.sets.map(s => fmtSet(g.ex, s)).join(' · ')}</span></li>`).join('')}</ul>`};
+}
+function renderLog(){
+  const days = setsByDay();
+  const today = dayKey(Date.now());
+  let count = 0; const cells = []; const hit = {};
+  for (let i = 6; i >= 0; i--){
+    const d = new Date(); d.setDate(d.getDate() - i); const k = dayKey(d.getTime());
+    const s = days[k] || []; if (s.length) count++;
+    s.forEach(x => hit[EX[x.ex].m] = 1);
+    const sm = summarize(s); const tot = s.length || 1;
+    const bars = sm.musc.map(([m,n]) => `<i style="${cc(m)};height:${(n/tot*100).toFixed(1)}%"></i>`).join('');
+    cells.push(`<div class="wd${k===today?' today':''}"><div class="bars" title="${s.length} σετ">${bars}</div>${wdFmt.format(d)}</div>`);
+  }
+  $('#week').innerHTML = cells.join('');
+  $('#week-count').textContent = count === 1 ? '1 προπόνηση' : count + ' προπονήσεις';
+  const missing = ['chest','back','legs','shoulders','arms','core'].filter(m => !hit[m]).map(m => CATS[m].n);
+  $('#balance').innerHTML = !count ? 'Καμία προπόνηση αυτή την εβδομάδα. Πάμε Χάρη;'
+    : missing.length ? `Για γενική φόρμα, λείπουν αυτή την εβδομάδα: <b>${missing.join(', ')}</b>.`
+    : '<b>Όλες οι μυϊκές ομάδες δουλεύτηκαν αυτή την εβδομάδα.</b> Ισορροπημένος σαν τον προϋπολογισμό της Ε.Ε.';
+  const ts = days[today];
+  if (ts){
+    const b = sessionBlock(ts);
+    $('#today').innerHTML = `<div class="panel"><div class="sess-head"><div><div class="eyebrow">Κατηγορία</div><div class="sess-label">${b.sm.label}</div></div></div>${b.html}</div>`;
+  } else {
+    $('#today').innerHTML = `<div class="panel empty"><span>Δεν υπάρχουν σετ για σήμερα. Διάλεξε ένα όργανο και κατέγραψε κιλά και επαναλήψεις.</span><button type="button" class="btn" data-goto="gear">Διάλεξε όργανο</button></div>`;
+  }
+  const keys = Object.keys(days).filter(k => k !== today).sort().reverse();
+  $('#history').innerHTML = keys.length ? keys.map(k => {
+    const b = sessionBlock(days[k]);
+    return `<details class="day"><summary><div class="sum-l"><span class="sum-date">${dayFmt.format(keyToDate(k))}</span><span class="sum-label">${b.sm.label}</span>
+      <div class="chips">${b.sm.musc.slice(0,3).map(([m]) => `<span class="dot" style="${cc(m)}"></span>`).join('')}</div></div>
+      <div class="sum-r"><b>${b.sm.n}</b> σετ<br>${b.sm.mins}′</div></summary><div class="day-body">${b.html}</div></details>`;
+  }).join('') : `<div class="panel empty">Οι προηγούμενες προπονήσεις θα εμφανίζονται εδώ, ομαδοποιημένες ανά ημέρα.</div>`;
+  $$('.sample-banner').forEach(el => el.hidden = !hasSample());
+}
+
+/* ---------- UI: progress ---------- */
+let progEx = null;
+function renderProg(){
+  const counts = {}; DB.sets.forEach(s => { if (EX[s.ex]) counts[s.ex] = (counts[s.ex]||0) + 1; });
+  const used = Object.keys(EX).filter(k => counts[k]).sort((a,b) => counts[b] - counts[a]);
+  const sel = $('#prog-ex');
+  if (!used.length){
+    sel.innerHTML = '<option>Καμία άσκηση ακόμα</option>'; sel.disabled = true;
+    $('#prog-stats').innerHTML = ''; $('#prog-chart').innerHTML = '<p class="hint">Κατέγραψε μερικά σετ και εδώ θα δεις την πρόοδό σου.</p>';
+  } else {
+    sel.disabled = false;
+    if (!progEx || !counts[progEx]) progEx = used[0];
+    sel.innerHTML = used.map(k => `<option value="${k}"${k===progEx?' selected':''}>${esc(EX[k].n)} (${counts[k]})</option>`).join('');
+    renderProgEx();
+  }
+  const since = Date.now() - 30*864e5; const mc = {};
+  DB.sets.forEach(s => { if (s.t >= since && EX[s.ex]){ const m = EX[s.ex].m; mc[m] = (mc[m]||0) + 1; } });
+  const max = Math.max(1, ...Object.values(mc));
+  $('#musc').innerHTML = Object.keys(CATS).map(m => `<div class="musc-row"><span>${CATS[m].n}</span><div class="musc-bar"><i style="${cc(m)};width:${((mc[m]||0)/max*100).toFixed(1)}%"></i></div><span class="n">${mc[m]||0}</span></div>`).join('');
+  $$('.sample-banner').forEach(el => el.hidden = !hasSample());
+}
+function renderProgEx(){
+  const id = progEx, e = EX[id];
+  const all = setsOf(id);
+  const byDay = {}; all.forEach(s => { const k = dayKey(s.t); (byDay[k] = byDay[k] || []).push(s); });
+  const keys = Object.keys(byDay).sort();
+  let val, unit, title, stats;
+  const mx = f => Math.max(...all.map(f));
+  if (e.cardio){
+    val = ss => Math.max(...ss.map(s => s.b)); unit = e.ub || 'km'; title = (e.ub ? 'Όροφοι' : 'Απόσταση') + ' ανά προπόνηση';
+    stats = [[fnum(mx(s => s.b)), 'καλύτερη (' + unit + ')'],[fnum(all.reduce((a,s) => a + s.b, 0)), 'σύνολο ' + unit],[fnum(all.reduce((a,s) => a + s.a, 0)) + '′', 'σύνολο χρόνου']];
+  } else if (e.timed){
+    val = ss => Math.max(...ss.map(s => s.b)); unit = '″'; title = 'Μέγιστος χρόνος';
+    stats = [[mx(s => s.b) + '″', 'ρεκόρ'],[all.length, 'σετ'],[keys.length, 'προπονήσεις']];
+  } else if (e.assist){
+    val = ss => Math.min(...ss.map(s => s.a)); unit = 'kg'; title = 'Βοήθεια (όσο πιο χαμηλά, τόσο καλύτερα)';
+    stats = [[fnum(Math.min(...all.map(s => s.a))), 'ελάχ. βοήθεια (kg)'],[mx(s => s.b), 'μέγ. επαναλήψεις'],[all.length, 'σετ']];
+  } else if (e.bw){
+    val = ss => Math.max(...ss.map(s => s.b)); unit = 'επαν.'; title = 'Μέγιστες επαναλήψεις';
+    stats = [[mx(s => s.b), 'μέγ. επαναλήψεις'],[all.length, 'σετ'],[keys.length, 'προπονήσεις']];
+  } else {
+    val = ss => Math.max(...ss.map(s => s.a)); unit = 'kg'; title = 'Μέγιστο βάρος ανά προπόνηση';
+    stats = [[fnum(mx(s => s.a)), 'ρεκόρ (kg)'],[fnum(Math.round(mx(e1rm)*2)/2), 'εκτ. 1RM (kg)'],[all.length, 'σετ']];
+  }
+  const pts = keys.map(k => ({d:keyToDate(k), v:val(byDay[k])}));
+  $('#prog-stats').innerHTML = stats.map(([v,l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('');
+  $('#prog-chart').innerHTML = `<div class="eyebrow" style="margin-bottom:6px">${title}</div>` + chartSVG(pts, unit, e.m);
+}
+function niceTicks(min, max, n=4){
+  if (min === max){ min -= 1; max += 1; }
+  const span = max - min, raw = span / n, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1,2,2.5,5,10].map(x => x*mag).find(x => x >= raw);
+  const lo = Math.floor(min/step)*step, hi = Math.ceil(max/step)*step;
+  const t = []; for (let v = lo; v <= hi + 1e-9; v += step) t.push(+v.toFixed(4));
+  return t;
+}
+function chartSVG(pts, unit, m){
+  const W = 340, H = 190, L = 38, Rr = 14, T = 16, B = 26;
+  if (!pts.length) return '';
+  const vs = pts.map(p => p.v); const ticks = niceTicks(Math.min(...vs), Math.max(...vs));
+  const y0 = ticks[0], y1 = ticks[ticks.length-1];
+  const t0 = pts[0].d.getTime(), t1 = pts[pts.length-1].d.getTime();
+  const Xp = t => pts.length === 1 ? (L + (W-Rr))/2 : L + (t - t0)/(t1 - t0) * (W - L - Rr);
+  const Y = v => T + (1 - (v - y0)/(y1 - y0)) * (H - T - B);
+  const line = pts.map((p,i) => (i?'L':'M') + Xp(p.d.getTime()).toFixed(1) + ' ' + Y(p.v).toFixed(1)).join(' ');
+  const area = line + ` L ${Xp(t1).toFixed(1)} ${H-B} L ${Xp(t0).toFixed(1)} ${H-B} Z`;
+  const last = pts[pts.length-1];
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Γράφημα προόδου" style="${cc(m)}">
+    ${ticks.map(v => `<line x1="${L}" x2="${W-Rr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end" font-size="10.5" fill="var(--muted)">${fnum(v)}</text>`).join('')}
+    <path d="${area}" fill="var(--cc)" opacity=".12"/>
+    <path d="${line}" fill="none" stroke="var(--cc)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${pts.map(p => `<circle cx="${Xp(p.d.getTime())}" cy="${Y(p.v)}" r="2.6" fill="var(--surface)" stroke="var(--cc)" stroke-width="1.6"/>`).join('')}
+    <circle cx="${Xp(t1)}" cy="${Y(last.v)}" r="5" fill="var(--cc)"/>
+    <text x="${Math.min(Xp(t1), W-Rr)}" y="${Math.max(Y(last.v)-10, 11)}" text-anchor="end" font-size="11.5" font-weight="600" fill="var(--ink)">${fnum(last.v)} ${unit}</text>
+    <text x="${L}" y="${H-7}" font-size="10.5" fill="var(--muted)">${shortFmt.format(pts[0].d)}</text>
+    ${pts.length > 1 ? `<text x="${W-Rr}" y="${H-7}" text-anchor="end" font-size="10.5" fill="var(--muted)">${shortFmt.format(last.d)}</text>` : ''}
+  </svg>`;
+}
+
+/* ---------- workout session ---------- */
+const clock = ms => { const t = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), sec = t % 60;
+  return (h ? h + ':' + String(m).padStart(2,'0') : m) + ':' + String(sec).padStart(2,'0'); };
+function recordedMins(sets){
+  if (!sets.length || !DB.sessions) return null;
+  const k = dayKey(sets[0].t);
+  let ms = 0, any = false;
+  DB.sessions.forEach(x => { if (dayKey(x.start) === k){ ms += x.end - x.start; any = true; } });
+  if (DB.active && dayKey(DB.active.start) === k){ ms += Date.now() - DB.active.start; any = true; }
+  return any ? Math.max(1, Math.round(ms / 60000)) : null;
+}
+const liveSets = () => DB.active ? DB.sets.filter(s => !s.sample && s.t >= DB.active.start) : [];
+function startWorkout(progId){
+  DB.active = {start: Date.now(), prog: progId || null}; save();
+  toast('Η προπόνηση ξεκίνησε. Το χρονόμετρο τρέχει!');
+  if (progId && (!openProg || openProg.id !== progId)) openProgram(progId);
+  else if (openProg) renderSheetBody();
+  renderAll();
+}
+function prCount(sets){
+  let n = 0;
+  sets.forEach(s => {
+    const prior = DB.sets.filter(x => !x.sample && x.ex === s.ex && x.t < s.t);
+    if (prior.length && metric(s.ex, s) > Math.max(...prior.map(x => metric(s.ex, x)))) n++;
+  });
+  return n;
+}
+function finishWorkout(auto){
+  if (!DB.active) return;
+  const start = DB.active.start, sets = liveSets();
+  const end = auto ? (sets.length ? sets[sets.length - 1].t + 120000 : start + 60000) : Date.now();
+  DB.sessions.push({start, end, prog: DB.active.prog}); DB.active = null; save();
+  if (auto) return;
+  if (!$('#sheet').hidden) closeSheet(); else renderAll();
+  const sm = summarize(sets.length ? sets : []), mins = Math.max(1, Math.round((end - start) / 60000));
+  const k = sets.length ? sessionKcal(sets) : null, prs = prCount(sets);
+  $('#sum-body').innerHTML = `
+    <div><div class="eyebrow">Τέλος προπόνησης</div><h2 id="sum-title" class="sess-label" style="font-size:30px">${sets.length ? sm.label : 'Χωρίς σετ'}</h2></div>
+    ${sets.length ? `<div class="chips">${sm.musc.map(([m,n]) => `<span class="chip"><span class="dot" style="${cc(m)}"></span>${CATS[m].n} · ${n}</span>`).join('')}</div>` : ''}
+    <div class="stats">
+      <div class="stat"><b>${clock(end - start)}</b><span>διάρκεια</span></div>
+      <div class="stat"><b>${sets.length}</b><span>σετ</span></div>
+      <div class="stat"><b>${sm.vol >= 1000 ? fnum(sm.vol/1000) + 't' : fnum(sm.vol)}</b><span>όγκος (kg)</span></div>
+      <div class="stat"><b>${k === null ? '—' : '~' + k}</b><span>kcal${k === null ? ' · βάλε βάρος' : ''}</span></div>
+      <div class="stat"><b>${prs}</b><span>${prs === 1 ? 'ρεκόρ' : 'ρεκόρ'}</span></div>
+    </div>
+    ${sets.length && (end - start) < HARIS.quickMins * 60000 ? `<p style="margin:0;font-family:var(--font-d);font-size:22px;font-weight:700;line-height:1.15;color:var(--chest)">${esc(pick(HARIS.quick))}</p>` : ''}
+    ${sets.length && (end - start) >= HARIS.longMins * 60000 ? `<p style="margin:0;font-family:var(--font-d);font-size:22px;font-weight:700;line-height:1.15;color:var(--good)">${esc(pick(HARIS.long))}</p>` : ''}    <button type="button" class="btn" id="sum-close">Κλείσιμο</button>`;
+  $('#toast').hidden = true; clearTimeout(toastTimer);
+  $('#summary').hidden = false;
+}
+function renderLive(){
+  const box = $('#live-box');
+  if (!DB.active){
+    box.innerHTML = `<button type="button" class="start-btn" data-start><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>Έναρξη προπόνησης</button>`;
+    return;
+  }
+  const p = DB.active.prog && DB.programs.find(x => x.id === DB.active.prog);
+  box.innerHTML = `<div class="live">
+    <div class="eyebrow"><i></i>Προπόνηση σε εξέλιξη${p ? ' · ' + esc(p.n) : ''}</div>
+    <div class="clock" id="live-clock">${clock(Date.now() - DB.active.start)}</div>
+    <div class="sub" id="live-sub"></div>
+    <div class="row">${p ? `<button type="button" class="btn alt" data-prog="${p.id}">Άνοιγμα ${esc(p.n)}</button>` : ''}<button type="button" class="btn" data-finish>Τέλος προπόνησης</button></div>
+  </div>`;
+  tickLive();
+}
+function tickLive(){
+  if (!DB.active) return;
+  const c = $('#live-clock'); if (c) c.textContent = clock(Date.now() - DB.active.start);
+  const sub = $('#live-sub');
+  if (sub){ const ls = liveSets(); const k = ls.length ? sessionKcal(ls) : null; sub.textContent = ls.length + ' σετ' + (k !== null && ls.length ? ' · ~' + k + ' kcal' : ''); }
+  const pc = $('#prog-clock'); if (pc) pc.textContent = clock(Date.now() - DB.active.start);
+}
+
+/* ---------- programs ---------- */
+function defaultPrograms(){ return [
+  {id:'p_push', n:'Push', ex:['bench','incdb','mshoulder','lateral','pushdown'], tpl:true},
+  {id:'p_pull', n:'Pull', ex:['pulldown','crow','tbar','facepull','curl'], tpl:true},
+  {id:'p_legs', n:'Legs', ex:['squat','legpress','legext','lyingcurl','standcalf'], tpl:true}
+]; }
+const QUICK = ['Push','Pull','Legs','Upper','Lower','Full Body','Cardio'];
+const progList = p => p.ex.filter(x => EX[x]);
+function renderPrograms(){
+  const box = $('#programs');
+  if (filter !== 'all' || query.trim()){ box.innerHTML = ''; return; }
+  const ps = DB.programs;
+  box.innerHTML = `<h2 class="group-title">Τα προγράμματά μου<span>${ps.length}</span></h2><div class="prog-grid">${ps.map(p => {
+    const ex = progList(p), cats = [...new Set(ex.map(x => EX[x].m))];
+    let last = 0; DB.sets.forEach(s => { if (!s.sample && ex.includes(s.ex) && s.t > last) last = s.t; });
+    return `<button type="button" class="prog-card" data-prog="${p.id}"><span class="pn">${esc(p.n)}</span>
+      <span class="card-dots">${cats.map(c => `<span class="dot" style="${cc(c)}" title="${CATS[c].n}"></span>`).join('')}</span>
+      <span class="card-meta">${ex.length} ${ex.length === 1 ? 'άσκηση' : 'ασκήσεις'}${p.tpl ? ' · πρότυπο' : ''}${last ? ' · ' + (dayKey(last) === dayKey(Date.now()) ? 'σήμερα' : dayFmt.format(last)) : ''}</span></button>`;
+  }).join('')}<button type="button" class="prog-card new" data-newprog>+ Νέο πρόγραμμα</button></div>`;
+}
+function openProgram(id){
+  const p = DB.programs.find(x => x.id === id); if (!p) return;
+  openProg = p; openEq = null;
+  $('#sheet-title').textContent = p.n;
+  $('#sheet-group').textContent = 'Πρόγραμμα · ' + progList(p).length + ' ασκήσεις';
+  renderSheetBody();
+  $('#sheet').hidden = false; document.body.style.overflow = 'hidden';
+  const first = progList(p)[0];
+  requestAnimationFrame(() => { if (first) showEq(eqOfEx[first]); });
+  updateRest();
+}
+function renderProgBody(){
+  const p = openProg, ex = progList(p);
+  const head = DB.active
+    ? `<div class="live" style="padding:12px 14px"><div class="eyebrow"><i></i>Προπόνηση σε εξέλιξη</div><div class="row" style="align-items:center"><span class="clock" id="prog-clock" style="font-size:36px;flex:1">${clock(Date.now() - DB.active.start)}</span><button type="button" class="btn" data-finish style="flex:none">Τέλος</button></div></div>`
+    : `<button type="button" class="start-btn" data-start="${p.id}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>Έναρξη ${esc(p.n)}</button>`;
+  $('#sheet-body').innerHTML = head + (ex.length ? ex.map(x => {
+    const eq = eqById(eqOfEx[x]);
+    return `<div class="prog-ex"><button type="button" class="eq-label${shownEq === eq.id ? ' on' : ''}" data-show="${eq.id}">${thumbs[eq.id] ? `<img src="${thumbs[eq.id]}" alt="">` : ''}${esc(eq.n)} · δες σε 3D</button>${renderEx(x)}</div>`;
+  }).join('') : '<div class="panel empty">Το πρόγραμμα δεν έχει ασκήσεις. Πάτα «Επεξεργασία» για να προσθέσεις.</div>') + `
+    <div class="row"><button type="button" class="btn ghost" id="edit-prog" style="flex:1">Επεξεργασία</button><button type="button" class="btn ghost" id="del-prog" style="flex:1">Διαγραφή προγράμματος</button></div>`;
+}
+
+let draft = null;
+function openBuilder(id){
+  const p = id ? DB.programs.find(x => x.id === id) : null;
+  draft = p ? {id:p.id, n:p.n, ex:progList(p).slice()} : {id:null, n:'', ex:[]};
+  $('#b-title').textContent = p ? 'Επεξεργασία: ' + p.n : 'Νέο πρόγραμμα';
+  $('#b-body').innerHTML = `
+    <div class="panel">
+      <label class="eyebrow" for="b-name">Όνομα / κατηγορία</label>
+      <input class="txt-in" id="b-name" value="${esc(draft.n)}" placeholder="π.χ. Pull, Δευτέρα στήθος…" autocomplete="off">
+      <div class="quick">${QUICK.map(n => `<button type="button" data-quick="${n}">${n}</button>`).join('')}</div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">Η σειρά του προγράμματος</div>
+      <ol class="sets sel-list" id="b-sel"></ol>
+    </div>
+    <div class="view" style="gap:10px">
+      <div class="eyebrow">Διάλεξε μηχανήματα και ασκήσεις</div>
+      <input class="txt-in" id="b-search" type="search" placeholder="Αναζήτηση: π.χ. row, curl" autocomplete="off" aria-label="Αναζήτηση άσκησης">
+      ${GROUPS.map(gr => `<div class="view" style="gap:8px" data-bgroup="${gr.id}"><h3 class="group-title" style="font-size:17px">${gr.n}</h3>${EQUIP.filter(e => e.g === gr.id).map(e => `
+        <details class="eqpick" data-beq="${e.id}"${e.ex.some(x => draft.ex.includes(x)) ? ' open' : ''}>
+          <summary>${thumbs[e.id] ? `<img src="${thumbs[e.id]}" alt="">` : ''}<span class="nm">${esc(e.n)}</span><span class="ct" data-ct="${e.id}"></span></summary>
+          ${e.ex.map(x => `<label class="pick" data-bx="${norm(EX[x].n + ' ' + e.n)}"><input type="checkbox" data-pick="${x}"${draft.ex.includes(x) ? ' checked' : ''}>${esc(EX[x].n)}<span class="dot" style="${cc(EX[x].m)}"></span></label>`).join('')}
+        </details>`).join('')}</div>`).join('')}
+    </div>`;
+  renderSel();
+  $('#builder').hidden = false; document.body.style.overflow = 'hidden';
+}
+function renderSel(){
+  $('#b-sel').innerHTML = draft.ex.length ? draft.ex.map((x,i) => `<li><span class="k">${i+1}.</span><b>${esc(EX[x].n)}<br><span class="mv">${esc(eqById(eqOfEx[x]).n)}</span></b>
+    ${i ? `<button type="button" data-up="${i}" aria-label="Μετακίνηση πιο πάνω">↑</button>` : ''}<button type="button" data-rm="${x}" aria-label="Αφαίρεση">×</button></li>`).join('')
+    : '<li><span class="mv">Δεν έχεις διαλέξει ακόμα ασκήσεις. Άνοιξε ένα μηχάνημα παρακάτω και τσέκαρε ό,τι κάνεις.</span></li>';
+  EQUIP.forEach(e => { const n = e.ex.filter(x => draft.ex.includes(x)).length; const el = document.querySelector(`[data-ct="${e.id}"]`); if (el){ el.textContent = n ? n + ' ✓' : e.ex.length + ' ασκ.'; el.classList.toggle('on', !!n); } });
+}
+function closeBuilder(){ $('#builder').hidden = true; draft = null; if ($('#sheet').hidden) document.body.style.overflow = ''; }
+function saveBuilder(){
+  const n = $('#b-name').value.trim();
+  if (!n){ toast('Δώσε ένα όνομα στο πρόγραμμα, π.χ. Pull.'); $('#b-name').focus(); return; }
+  if (!draft.ex.length){ toast('Διάλεξε τουλάχιστον μία άσκηση.'); return; }
+  let p;
+  if (draft.id){ p = DB.programs.find(x => x.id === draft.id); p.n = n.slice(0,40); p.ex = draft.ex.slice(); delete p.tpl; }
+  else { p = {id:'p_' + uid(), n:n.slice(0,40), ex:draft.ex.slice()}; DB.programs.push(p); }
+  save(); closeBuilder();
+  toast('Αποθηκεύτηκε: ' + p.n);
+  if (openProg && openProg.id === p.id) openProgram(p.id); else renderAll();
+}
+document.addEventListener('change', e => {
+  const c = e.target.closest('[data-pick]'); if (!c || !draft) return;
+  const x = c.dataset.pick;
+  if (c.checked){ if (!draft.ex.includes(x)) draft.ex.push(x); } else draft.ex = draft.ex.filter(y => y !== x);
+  renderSel();
+});
+document.addEventListener('input', e => {
+  if (e.target.id !== 'b-search') return;
+  const q = norm(e.target.value.trim());
+  $$('details.eqpick').forEach(d => {
+    let any = false;
+    d.querySelectorAll('.pick').forEach(l => { const hit = !q || l.dataset.bx.includes(q); l.hidden = !hit; any = any || hit; });
+    d.hidden = !any; if (q && any) d.open = true;
+  });
+  $$('[data-bgroup]').forEach(g => g.hidden = !g.querySelector('details.eqpick:not([hidden])'));
+});
+const followEx = e => {
+  if (!openProg) return;
+  const ex = e.target.closest && e.target.closest('.ex'); if (!ex) return;
+  const id = eqOfEx[ex.dataset.ex]; if (id && id !== shownEq) showEq(id);
+};
+document.addEventListener('focusin', followEx);
+document.addEventListener('pointerdown', followEx);
+
+/* ---------- calories ---------- */
+const ACT = [[1.2,'Καθιστική ζωή, χωρίς προπόνηση'],[1.375,'Ελαφριά: 1–3 προπονήσεις την εβδομάδα'],[1.55,'Μέτρια: 3–5 προπονήσεις την εβδομάδα'],[1.725,'Υψηλή: 6–7 προπονήσεις την εβδομάδα'],[1.9,'Πολύ υψηλή: χειρωνακτική δουλειά και προπόνηση']];
+// MET τιμές (Compendium of Physical Activities). Τρέξιμο: ~1 kcal ανά kg ανά km.
+const CARDIO_MET = {inclinewalk:6, bike:7, elliptical:5, row:7, stair:9};
+const STRENGTH_MET = 5;
+const PITA = 600; // περίπου θερμίδες σε μια πίτα γύρο
+function kcalCardio(id, s, w){
+  if (id === 'run') return s.b > 0 ? w * s.b : 9.8 * w * s.a / 60;
+  return (CARDIO_MET[id] || 6) * w * s.a / 60;
+}
+function sessionKcal(sets){
+  const w = +DB.profile.w; if (!w) return null;
+  let k = 0; const st = [];
+  sets.forEach(s => { if (EX[s.ex].cardio) k += kcalCardio(s.ex, s, w); else st.push(s.t); });
+  if (st.length){
+    const span = (Math.max(...st) - Math.min(...st)) / 60000 + 2;
+    const rec = recordedMins(sets);
+    const cardioMins = sets.filter(s => EX[s.ex].cardio).reduce((a,s) => a + s.a, 0);
+    const mins = rec !== null ? Math.max(st.length * 2, rec - cardioMins) : Math.max(st.length * 2.5, Math.min(span, st.length * 6));
+    k += STRENGTH_MET * w * mins / 60;
+  }
+  return Math.round(k);
+}
+function renderCal(){
+  const p = DB.profile;
+  $$('[data-sex]').forEach(b => b.setAttribute('aria-pressed', String((p.sex || 'm') === b.dataset.sex)));
+  [['age','p-age'],['h','p-h'],['w','p-w']].forEach(([k,id]) => { const el = $('#'+id); if (document.activeElement !== el) el.value = p[k] ? fnum(p[k]) : ''; });
+  const act = +p.act || 1.55;
+  $('#p-act').innerHTML = ACT.map(([v,n]) => `<option value="${v}"${v===act?' selected':''}>${n}</option>`).join('');
+  calResults(); calTrain();
+}
+function calResults(){
+  const p = DB.profile, w = +p.w, h = +p.h, a = +p.age;
+  if (!(w && h && a)){ $('#cal-res').innerHTML = '<p class="hint" style="margin:0">Συμπλήρωσε ηλικία, ύψος και βάρος για να δεις πόσες θερμίδες καις τη μέρα.</p>'; return; }
+  const bmr = 10*w + 6.25*h - 5*a + ((p.sex || 'm') === 'm' ? 5 : -161);
+  const tdee = bmr * (+p.act || 1.55);
+  const bmi = w / Math.pow(h/100, 2);
+  const bmiL = bmi < 18.5 ? 'λιποβαρές' : bmi < 25 ? 'φυσιολογικό' : bmi < 30 ? 'υπέρβαρο' : 'παχυσαρκία';
+  const r = v => Math.round(v / 10) * 10;
+  $('#cal-res').innerHTML = `
+    <div><div class="eyebrow">Καις κάθε μέρα περίπου</div><div class="big-k">${fnum(r(tdee))}<small>kcal</small></div></div>
+    <div class="stats">
+      <div class="stat"><b>${fnum(r(bmr))}</b><span>σε πλήρη ξεκούραση</span></div>
+      <div class="stat"><b>${fnum(r(tdee - bmr))}</b><span>από κίνηση & προπόνηση</span></div>
+      <div class="stat"><b>${fnum(Math.round(bmi*10)/10)}</b><span>ΔΜΣ · ${bmiL}</span></div>
+    </div>
+    <div class="eyebrow">Πόσες να τρως, ανάλογα με τον στόχο</div>
+    <div class="targets">
+      <div class="target"><b>${fnum(r(tdee - 500))}</b><span>απώλεια λίπους</span></div>
+      <div class="target on"><b>${fnum(r(tdee))}</b><span>διατήρηση · γενική φόρμα</span></div>
+      <div class="target"><b>${fnum(r(tdee + 300))}</b><span>όγκος</span></div>
+    </div>`;
+}
+function calTrain(){
+  const w = +DB.profile.w;
+  if (!w){ $('#cal-train').innerHTML = '<p class="hint" style="margin:0">Βάλε το βάρος σου πιο πάνω για να υπολογίζονται οι θερμίδες κάθε προπόνησης.</p>'; return; }
+  const days = setsByDay(), today = dayKey(Date.now());
+  const tk = days[today] ? sessionKcal(days[today]) : 0;
+  const week = [];
+  for (let i = 6; i >= 0; i--){ const d = new Date(); d.setDate(d.getDate() - i); const k = dayKey(d.getTime()); week.push({d, k, v: days[k] ? sessionKcal(days[k]) : 0}); }
+  const wsum = week.reduce((a,x) => a + x.v, 0);
+  const max = Math.max(100, ...week.map(x => x.v));
+  const W = 340, H = 150, B = 22, T = 18, bw = 30, gap = (W - 7*bw) / 7;
+  const bars = week.map((x,i) => {
+    const bh = x.v ? Math.max(3, (x.v / max) * (H - B - T)) : 0, bx = gap/2 + i*(bw + gap), by = H - B - bh;
+    return `<rect x="${bx}" y="${H - B - 2}" width="${bw}" height="2" rx="1" fill="var(--line)"/>
+      ${x.v ? `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="5" fill="${x.k === today ? 'var(--chest)' : 'var(--ink)'}" opacity="${x.k === today ? 1 : .8}"/>
+      <text x="${bx + bw/2}" y="${by - 5}" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink)">${x.v}</text>` : ''}
+      <text x="${bx + bw/2}" y="${H - 6}" text-anchor="middle" font-size="10.5" fill="var(--muted)" font-weight="${x.k === today ? 700 : 400}">${wdFmt.format(x.d)}</text>`;
+  }).join('');
+  const keys = Object.keys(days).sort().reverse().slice(0, 6);
+  $('#cal-train').innerHTML = `
+    <div class="stats">
+      <div class="stat"><b>${tk ? '~' + tk : '0'}</b><span>kcal σήμερα</span></div>
+      <div class="stat"><b>~${fnum(wsum)}</b><span>kcal σε 7 ημέρες</span></div>
+      <div class="stat"><b>${fnum(Math.round(wsum / PITA * 10) / 10)}</b><span>πίτες γύρο κάηκαν</span></div>
+    </div>
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Θερμίδες προπόνησης ανά ημέρα" style="width:100%;height:auto;display:block">${bars}</svg>
+    ${keys.length ? `<ul class="kcal-list">${keys.map(k => { const sm = summarize(days[k]); return `<li><span>${k === today ? 'Σήμερα' : dayFmt.format(keyToDate(k))} · ${sm.label}</span><b>~${sessionKcal(days[k])} kcal</b></li>`; }).join('')}</ul>` : ''}`;
+}
+['age','h','w'].forEach(k => $('#p-' + k).addEventListener('input', e => {
+  const v = parseNum(e.target.value); DB.profile[k] = v > 0 ? v : undefined; save(); calResults(); calTrain();
+}));
+$('#p-act').addEventListener('change', e => { DB.profile.act = +e.target.value; save(); calResults(); });
+
+/* ---------- toast ---------- */
+let toastTimer = 0;
+function toast(msg, undo, kind, title){
+  const el = $('#toast');
+  el.className = 'toast' + (kind ? ' ' + kind : '');
+  el.innerHTML = (kind === 'pr' ? `<span class="big">${esc(title || 'Νέο ρεκόρ!')}</span>` : '') + `<span>${esc(msg)}</span>${undo ? '<button type="button" id="undo">Αναίρεση</button>' : ''}`;
+  el.hidden = true; void el.offsetWidth; el.hidden = false;
+  if (undo) $('#undo').onclick = () => { undo(); el.hidden = true; };
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.hidden = true, kind === 'pr' ? 6500 : 4500);
+}
+
+/* ---------- tabs & events ---------- */
+let tab = 'gear';
+function setTab(t){
+  tab = t;
+  $$('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
+  ['gear','log','prog','cal'].forEach(k => $('#v-'+k).hidden = k !== t);
+  renderAll(); window.scrollTo(0,0);
+}
+function renderAll(){ if (tab === 'gear') renderGear(); if (tab === 'log') renderLog(); if (tab === 'prog') renderProg(); if (tab === 'cal') renderCal(); updateRest(); }
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.tab) return setTab(t.dataset.tab);
+  if (t.dataset.filter){ filter = t.dataset.filter; return renderGear(); }
+  if (t.dataset.eq) return openSheet(t.dataset.eq);
+  if (t.dataset.goto) return setTab(t.dataset.goto);
+  if (t.id === 'sheet-close') return closeSheet();
+  if ('start' in t.dataset) return startWorkout(t.dataset.start || null);
+  if ('finish' in t.dataset){
+    if (!t.dataset.armed && !liveSets().length){ t.dataset.armed = '1'; t.textContent = 'Χωρίς σετ. Πάτα ξανά'; setTimeout(() => { if (t.isConnected){ delete t.dataset.armed; t.textContent = 'Τέλος προπόνησης'; } }, 3500); return; }
+    return finishWorkout();
+  }
+  if (t.id === 'sum-close'){ $('#summary').hidden = true; return renderAll(); }
+  if (t.dataset.prog) return openProgram(t.dataset.prog);
+  if ('newprog' in t.dataset) return openBuilder();
+  if (t.dataset.show) return showEq(t.dataset.show);
+  if (t.id === 'b-close') return closeBuilder();
+  if (t.id === 'b-save') return saveBuilder();
+  if (t.dataset.quick){ $('#b-name').value = t.dataset.quick; return; }
+  if (t.dataset.rm){ draft.ex = draft.ex.filter(x => x !== t.dataset.rm); const c = document.querySelector(`[data-pick="${t.dataset.rm}"]`); if (c) c.checked = false; return renderSel(); }
+  if (t.dataset.up){ const i = +t.dataset.up; [draft.ex[i-1], draft.ex[i]] = [draft.ex[i], draft.ex[i-1]]; return renderSel(); }
+  if (t.id === 'edit-prog') return openBuilder(openProg.id);
+  if (t.id === 'del-prog'){
+    if (t.dataset.armed){ DB.programs = DB.programs.filter(p => p.id !== openProg.id); save(); toast('Το πρόγραμμα διαγράφηκε.'); return closeSheet(); }
+    t.dataset.armed = '1'; t.textContent = 'Πάτα ξανά για διαγραφή'; t.className = 'btn danger'; t.style.flex = '1';
+    setTimeout(() => { if (t.isConnected && t.dataset.armed){ delete t.dataset.armed; t.textContent = 'Διαγραφή προγράμματος'; t.className = 'btn ghost'; } }, 4000);
+    return;
+  }
+  if (t.dataset.sex){ DB.profile.sex = t.dataset.sex; save(); return renderCal(); }
+  if (t.id === 'greet-next'){ $('#greet-text').textContent = greeting(); return; }
+  if (t.id === 'add-ex') return addCustom();
+  if (t.dataset.log) return logSet(t.dataset.log);
+  if (t.dataset.del) return delSet(t.dataset.del);
+  if (t.dataset.step){
+    const inp = document.getElementById(t.dataset.for);
+    const v = Math.max(0, Math.round((parseNum(inp.value) + parseFloat(t.dataset.step)) * 100) / 100);
+    inp.value = fnum(v); return;
+  }
+  if ('clearSample' in t.dataset){ DB.sets = DB.sets.filter(s => !s.sample); save(); toast('Το δείγμα δεδομένων διαγράφηκε.'); return renderAll(); }
+  if (t.id === 'copy-backup'){
+    const txt = JSON.stringify({app:'gymlog3d', v:2, sets:DB.sets.filter(s => !s.sample), custom:DB.custom, profile:DB.profile, programs:DB.programs, sessions:DB.sessions});
+    const ok = () => toast('Αντιγράφηκε. Επικόλλησέ το στις Σημειώσεις.');
+    const fail = () => { $('#restore-box').hidden = false; const ta = $('#restore-text'); ta.value = txt; ta.focus(); ta.select(); toast('Επίλεξε και αντίγραψε το κείμενο.'); };
+    try { navigator.clipboard.writeText(txt).then(ok, fail); } catch(err){ fail(); }
+    return;
+  }
+  if (t.id === 'show-restore'){ $('#restore-box').hidden = !$('#restore-box').hidden; return; }
+  if (t.id === 'do-restore'){
+    try {
+      const d = JSON.parse($('#restore-text').value);
+      if (!d || !Array.isArray(d.sets)) throw 0;
+      DB.custom = Array.isArray(d.custom) ? d.custom.filter(c => c && c.id && c.n && CATS[c.m] && eqById(c.eq)) : [];
+      registerCustom();
+      if (d.profile && typeof d.profile === 'object') DB.profile = d.profile;
+      if (Array.isArray(d.sessions)) DB.sessions = d.sessions.filter(x => x && isFinite(x.start) && isFinite(x.end));
+      if (Array.isArray(d.programs)) DB.programs = d.programs.filter(p => p && p.id && p.n && Array.isArray(p.ex));
+      DB.sets = d.sets.filter(s => s && EX[s.ex] && isFinite(s.a) && isFinite(s.b) && isFinite(s.t))
+        .map(s => ({id:String(s.id || uid()), ex:s.ex, a:+s.a, b:+s.b, t:+s.t}));
+      save(); toast('Επαναφέρθηκαν ' + DB.sets.length + ' σετ.'); renderAll();
+    } catch(err){ toast('Το κείμενο δεν είναι έγκυρο αντίγραφο. Αντέγραψέ το ξανά ολόκληρο.'); }
+    return;
+  }
+  if (t.id === 'wipe'){
+    if (t.dataset.armed){ DB.sets = []; DB.custom = []; DB.sessions = []; DB.active = null; registerCustom(); save(); delete t.dataset.armed; t.textContent = 'Διαγραφή όλων'; t.className = 'btn ghost'; toast('Όλα τα δεδομένα διαγράφηκαν.'); return renderAll(); }
+    t.dataset.armed = '1'; t.textContent = 'Πάτα ξανά για οριστική διαγραφή'; t.className = 'btn danger';
+    setTimeout(() => { if (t.dataset.armed){ delete t.dataset.armed; t.textContent = 'Διαγραφή όλων'; t.className = 'btn ghost'; } }, 4000);
+    return;
+  }
+});
+$('#search').addEventListener('input', e => { query = e.target.value; renderGear(); });
+$('#prog-ex').addEventListener('change', e => { progEx = e.target.value; renderProgEx(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){ if (!$('#builder').hidden) closeBuilder(); else if (!$('#sheet').hidden) closeSheet(); }
+  if (e.key === 'Enter' && e.target.matches('.stepper input')){ const ex = e.target.closest('.ex'); if (ex){ e.preventDefault(); logSet(ex.dataset.ex); } }
+  if (e.key === 'Enter' && e.target.id === 'new-ex-name'){ e.preventDefault(); addCustom(); }
+});
+
+/* ---------- boot ---------- */
+DB = load(); registerCustom();
+if (DB.active && Date.now() - DB.active.start > 5 * 3600e3) finishWorkout(true);
+save();
+renderGreeting();
+renderAll();
+if (init3D()){ makeThumbs(); renderGear(); }
+})();
+</script>
+
+</body>
+</html>
