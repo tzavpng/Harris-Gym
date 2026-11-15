@@ -540,6 +540,12 @@ const EX = {
   sideplank:X('Side Plank','core',5,[0,40],{timed:true}),
   mountain:X('Mountain Climber','core',2.5,[0,30],{bw:true}),
   burpee:X('Burpee','core',2.5,[0,10],{bw:true}),
+  widerow:X('Wide-Grip Seated Row Machine','back',5,[40,10]),
+  closerow:X('Close-Grip Seated Row Machine','back',5,[40,10]),
+  ropecurl:X('Cable Rope Hammer Curl','arms',2.5,[15,12],{s:'pull'}),
+  seateddbcurl:X('Seated Dumbbell Biceps Curl','arms',1,[10,10],{s:'pull'}),
+  sapushdown:X('Single-Arm Triceps Pushdown','arms',2.5,[10,12]),
+  saohcable:X('Single-Arm Overhead Cable Triceps Extension','arms',2.5,[7.5,12]),
   run:X('Treadmill Run','cardio',0,[20,3],{cardio:true}),
   inclinewalk:X('Incline Treadmill Walk','cardio',0,[15,1.5],{cardio:true}),
   bike:X('Stationary Bike','cardio',0,[20,8],{cardio:true}),
@@ -560,7 +566,7 @@ const EQUIP = [
   E('bench','free','Flat Bench Press',['bench','cgbench','skull','benchdip'],buildBench),
   E('incline','free','Incline Bench Press',['inclinebb'],buildIncline),
   E('decline','free','Decline Bench Press',['declinebb','declinesitup'],buildDecline),
-  E('adj','free','Adjustable Bench',['incdb','dbbench','dbfly','incfly','dbshoulder','arnold','pullover'],buildAdj),
+  E('adj','free','Adjustable Bench',['incdb','dbbench','dbfly','incfly','dbshoulder','arnold','pullover','seateddbcurl'],buildAdj),
   E('rack','free','Power Rack',['squat','frontsquat','ohp','rackpull'],buildRack),
   E('smith','free','Smith Machine',['smithsquat','smithbench','smithohp','smithcalf'],buildSmith),
   E('platform','free','Deadlift Platform / Barbell',['deadlift','sumo','rdl','goodmorning','bbrow','bbcurl','uprightrow'],buildPlatform),
@@ -573,8 +579,9 @@ const EQUIP = [
   E('mshoulder','upper','Shoulder Press Machine',['mshoulder'],buildShoulderPress),
   E('lat','upper','Lat Pulldown',['pulldown','cgpulldown'],buildLat),
   E('crow','upper','Seated Cable Row',['crow'],buildSeatedRow),
+  E('rowm','upper','Seated Row Machine',['widerow','closerow'],buildRowMachine),
   E('tbar','upper','T-Bar Row / Landmine',['tbar','landmine'],buildTbar),
-  E('cable','upper','Cable Crossover',['cross','pushdown','ohcable','facepull','cablelat','cablecurl','sapd','sacrow','glutekick','woodchop','pallof','cablecrunch'],buildCable),
+  E('cable','upper','Cable Crossover',['cross','pushdown','ohcable','facepull','cablelat','cablecurl','ropecurl','sapushdown','saohcable','sapd','sacrow','glutekick','woodchop','pallof','cablecrunch'],buildCable),
   E('assist','upper','Assisted Pull-Up / Dip',['apullup','adip'],buildAssist),
   E('legpress','lower','Leg Press',['legpress','lpcalf'],buildLegPress),
   E('hack','lower','Hack Squat',['hack'],buildHack),
@@ -885,6 +892,18 @@ function buildLat(){ const g = grp();
   [-1,1].forEach(k => { const e = cyl(g,.016,.22,M.chrome,k*.64,1.33,.6,'x'); e.rotation.z = Math.PI/2 + k*.5; cyl(g,.021,.14,M.rubber,k*.44,1.38,.6,'x'); });
   box(g,.1,.42,.1,M.frame,0,.24,.3); box(g,.46,.08,.4,M.pad,0,.48,.3);
   box(g,.06,.7,.06,M.frame,0,.4,.52); cyl(g,.06,.46,M.pad,0,.78,.52,'x');
+  return g; }
+function buildRowMachine(){ const g = grp();
+  box(g,.9,.06,1.45,M.frame,0,.03,0);
+  box(g,.1,.42,.1,M.frame,0,.24,.42); box(g,.45,.08,.4,M.pad,0,.48,.42);
+  box(g,.08,1.15,.08,M.frame,0,.58,.08); box(g,.42,.5,.08,M.pad,0,.98,.15);
+  box(g,.1,1.55,.1,M.frame,0,.78,-.62); box(g,1.0,.08,.1,M.frame,0,1.5,-.62);
+  [-1,1].forEach(k => {
+    box(g,.05,.05,.7,M.steel,k*.45,1.42,-.28);
+    box(g,.05,.45,.05,M.steel,k*.45,1.2,.05);
+    cyl(g,.022,.22,M.rubber,k*.45,.98,.05,'x');
+    cyl(g,.025,.25,M.steel,k*.6,1.22,-.58,'x'); plate(g,.225,M.blue,k*.62,1.22,-.58,'x');
+  });
   return g; }
 function buildSeatedRow(){ const g = grp();
   box(g,.5,.06,2.0,M.frame,0,.03,0);
@@ -1208,7 +1227,7 @@ function showEq(id){ shownEq = id; startViewer(id); $$('.eq-label').forEach(b =>
 function renderSheetBody(){
   if (openProg) return renderProgBody();
   const eq = openEq;
-  $('#sheet-body').innerHTML = eq.ex.map(renderEx).join('') + `
+  $('#sheet-body').innerHTML = sheetLiveHead('') + eq.ex.map(renderEx).join('') + `
     <div class="add-ex">
       <div class="eyebrow">Λείπει κάποια άσκηση σε αυτό το όργανο;</div>
       <input id="new-ex-name" placeholder="π.χ. Single-Leg Press" autocomplete="off" aria-label="Όνομα άσκησης">
@@ -1279,7 +1298,7 @@ function logSet(id){
     toast('Νέο ρεκόρ · ' + e.n + ': ' + fmtSet(id, s), undo, 'pr', pick(HARIS.pr).replace('{ex}', e.n).replace('{set}', fmtSet(id, s)));
   } else {
     const kc = e.cardio && +DB.profile.w ? ' · ~' + Math.round(kcalCardio(id, s, +DB.profile.w)) + ' kcal' : '';
-    toast(cleared ? 'Καταχωρήθηκε. Το δείγμα δεδομένων διαγράφηκε.' : 'Καταχωρήθηκε: ' + fmtSet(id, s) + kc, undo);
+    toast(cleared ? 'Καταχωρήθηκε. Το δείγμα δεδομένων διαγράφηκε.' : 'Καταχωρήθηκε: ' + fmtSet(id, s) + kc + (DB.active ? '' : ' · Για χρονόμετρο πάτα «Έναρξη»'), undo);
   }
 }
 function delSet(sid){
@@ -1303,8 +1322,8 @@ function updateRest(){
   const t = DB.sets.filter(s => !s.sample && dayKey(s.t) === today).reduce((m,s) => Math.max(m, s.t), 0);
   const d = (Date.now() - t) / 1000;
   // Σταματάει αν η προπόνηση έκλεισε με «Τέλος» μετά το τελευταίο σετ
-  const ended = !DB.active && DB.sessions.some(x => x.end >= t && x.start <= t);
-  const active = !!t && d <= 15*60 && !ended;
+  // Το διάλειμμα μετράει μόνο μέσα σε προπόνηση που ξεκίνησε με «Έναρξη»
+  const active = !!DB.active && !!t && t >= DB.active.start && d <= 15*60;
   const txt = active ? 'Διάλειμμα ' + Math.floor(d/60) + ':' + String(Math.floor(d%60)).padStart(2,'0') : '';
   el.hidden = !active || $('#sheet').hidden; el.textContent = txt;
   renderChip(active ? txt : null);
@@ -1468,7 +1487,7 @@ function startWorkout(progId){
   DB.active = {start: Date.now(), prog: progId || null}; save();
   toast('Η προπόνηση ξεκίνησε. Το χρονόμετρο τρέχει!');
   if (progId && (!openProg || openProg.id !== progId)) openProgram(progId);
-  else if (openProg) renderSheetBody();
+  else if (openProg || openEq) renderSheetBody();
   renderAll();
 }
 function prCount(sets){
@@ -1557,11 +1576,14 @@ function openProgram(id){
   requestAnimationFrame(() => { if (first) showEq(eqOfEx[first]); });
   updateRest();
 }
+function sheetLiveHead(progId, label){
+  return DB.active
+    ? `<div class="live" style="padding:12px 14px"><div class="eyebrow"><i></i>Προπόνηση σε εξέλιξη</div><div class="row" style="align-items:center"><span class="clock" id="prog-clock" style="font-size:36px;flex:1">${clock(Date.now() - DB.active.start)}</span><button type="button" class="btn" data-finish style="flex:none">Τέλος</button></div></div>`
+    : `<button type="button" class="start-btn" data-start="${progId || ''}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>Έναρξη ${label ? esc(label) : 'προπόνησης'}</button>`;
+}
 function renderProgBody(){
   const p = openProg, ex = progList(p);
-  const head = DB.active
-    ? `<div class="live" style="padding:12px 14px"><div class="eyebrow"><i></i>Προπόνηση σε εξέλιξη</div><div class="row" style="align-items:center"><span class="clock" id="prog-clock" style="font-size:36px;flex:1">${clock(Date.now() - DB.active.start)}</span><button type="button" class="btn" data-finish style="flex:none">Τέλος</button></div></div>`
-    : `<button type="button" class="start-btn" data-start="${p.id}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>Έναρξη ${esc(p.n)}</button>`;
+  const head = sheetLiveHead(p.id, p.n);
   $('#sheet-body').innerHTML = head + (ex.length ? ex.map(x => {
     const eq = eqById(eqOfEx[x]);
     return `<div class="prog-ex"><button type="button" class="eq-label${shownEq === eq.id ? ' on' : ''}" data-show="${eq.id}">${thumbs[eq.id] ? `<img src="${thumbs[eq.id]}" alt="">` : ''}${esc(eq.n)} · δες σε 3D</button>${renderEx(x)}</div>`;
