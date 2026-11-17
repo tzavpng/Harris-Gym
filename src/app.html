@@ -370,7 +370,25 @@ details.eqpick summary .ct.on{color:var(--ink);font-weight:700}
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const pick = a => a[Math.floor(Math.random() * a.length)];
+// Ατάκες «με τη σειρά τους»: κάθε λίστα ανακατεύεται και βγαίνουν όλες από μία φορά
+// πριν ξαναβγεί κάποια, και ποτέ η ίδια δύο φορές στη σειρά. Θυμάται και μετά το κλείσιμο.
+const BAG_KEY = 'gymlog3d.bags';
+let bags = {}; try { bags = JSON.parse(localStorage.getItem(BAG_KEY)) || {}; } catch(e){}
+function pick(a){
+  if (!a || !a.length) return '';
+  if (a.length === 1) return a[0];
+  const key = a.join('\u0001');
+  let b = bags[key];
+  if (!b || !Array.isArray(b.left) || !b.left.length || b.left.some(i => i >= a.length)){
+    const idx = a.map((_, i) => i);
+    for (let i = idx.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+    if (b && idx[idx.length - 1] === b.last){ const t = idx[idx.length - 1]; idx[idx.length - 1] = idx[0]; idx[0] = t; }
+    b = {left: idx, last: b ? b.last : -1};
+  }
+  const i = b.left.pop(); b.last = i; bags[key] = b;
+  try { localStorage.setItem(BAG_KEY, JSON.stringify(bags)); } catch(e){}
+  return a[i];
+}
 
 /* ================= ΧΑΡΗΣ: προσωποποίηση =================
    Εδώ αλλάζεις/προσθέτεις ατάκες. {n} = μέρες, {s} = σετ, {ex} = άσκηση, {set} = π.χ. "80 kg × 6". */
@@ -1171,7 +1189,7 @@ function greeting(){
   if (away >= 5 && !today) return pick(HARIS.away).replace('{n}', away);
   if (h >= 22 || h < 4) return pick(HARIS.night);
   const pool = HARIS.greet.slice();
-  if (h < 11) pool.push(HARIS.morning, HARIS.morning);
+  if (h < 11) pool.push(HARIS.morning);
   return pick(pool);
 }
 function renderGreeting(){
