@@ -26,6 +26,9 @@
   --good:#2FAE66; --gold:#F2B705; color-scheme:dark}
 
 html,body{height:100%}
+html{touch-action:manipulation;-webkit-text-size-adjust:100%}
+/* iOS zooms into any field under 16px when it gets focus */
+input,select,textarea{font-size:16px!important}
 [hidden]{display:none!important}
 body{background:var(--bg);color:var(--ink);font-family:var(--font-b);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -547,7 +550,7 @@ const EX = {
   sapushdown:X('Single-Arm Triceps Pushdown','arms',2.5,[10,12]),
   saohcable:X('Single-Arm Overhead Cable Triceps Extension','arms',2.5,[7.5,12]),
   run:X('Treadmill Run','cardio',0,[20,3],{cardio:true}),
-  inclinewalk:X('Incline Treadmill Walk','cardio',0,[15,1.5],{cardio:true}),
+  inclinewalk:X('Incline Treadmill Walk','cardio',0,[15,1.5],{cardio:true, extra:{n:'Κλίση %', step:.5, def:10, max:30}}),
   bike:X('Stationary Bike','cardio',0,[20,8],{cardio:true}),
   elliptical:X('Elliptical','cardio',0,[20,3],{cardio:true}),
   row:X('Indoor Rowing','cardio',0,[10,2],{cardio:true}),
@@ -617,7 +620,7 @@ function dayKey(t){ const d = new Date(t); return d.getFullYear()+'-'+String(d.g
 function keyToDate(k){ const [y,m,d] = k.split('-').map(Number); return new Date(y, m-1, d); }
 function fmtSet(id, s){
   const e = EX[id];
-  if (e.cardio) return `${fnum(s.a)} λεπτά · ${fnum(s.b)} ${e.ub || 'km'}`;
+  if (e.cardio) return `${fnum(s.a)} λεπτά · ${fnum(s.b)} ${e.ub || 'km'}` + (isFinite(s.c) ? ` · κλίση ${fnum(s.c)}%` : '');
   if (e.timed) return (s.a > 0 ? `+${fnum(s.a)} kg · ` : '') + `${s.b}″`;
   if (e.assist) return `βοήθεια ${fnum(s.a)} kg × ${s.b}`;
   if (e.bw) return s.a > 0 ? `+${fnum(s.a)} kg × ${s.b}` : `${s.b} επαναλήψεις`;
@@ -1249,6 +1252,7 @@ function renderEx(id){
   const prev = all.filter(s => dayKey(s.t) !== today);
   const last = all[all.length - 1];
   const init = last ? [last.a, last.b] : e.def;
+  const initC = e.extra ? (last && isFinite(last.c) ? last.c : e.extra.def) : 0;
   let meta = todays.length ? `Σήμερα: <b>${todays.length} ${e.cardio ? 'καταχωρήσεις' : 'σετ'}</b>` : 'Πρώτη φορά. Ξεκίνα ελαφριά.';
   if (prev.length){
     const lastDay = dayKey(prev[prev.length-1].t);
@@ -1273,6 +1277,7 @@ function renderEx(id){
       <div class="field"><label for="a-${id}">${fa}</label><div class="stepper"><button type="button" data-step="${-sa}" data-for="a-${id}" aria-label="Λιγότερα">−</button><input id="a-${id}" inputmode="decimal" value="${fnum(init[0])}"><button type="button" data-step="${sa}" data-for="a-${id}" aria-label="Περισσότερα">+</button></div></div>
       <div class="field"><label for="b-${id}">${fb}</label><div class="stepper"><button type="button" data-step="${-sb}" data-for="b-${id}" aria-label="Λιγότερες">−</button><input id="b-${id}" inputmode="${e.cardio?'decimal':'numeric'}" value="${fnum(init[1])}"><button type="button" data-step="${sb}" data-for="b-${id}" aria-label="Περισσότερες">+</button></div></div>
     </div>
+    ${e.extra ? `<div class="field"><label for="c-${id}">${e.extra.n}</label><div class="stepper"><button type="button" data-step="${-e.extra.step}" data-for="c-${id}" aria-label="Λιγότερη κλίση">−</button><input id="c-${id}" inputmode="decimal" value="${fnum(initC)}"><button type="button" data-step="${e.extra.step}" data-for="c-${id}" aria-label="Περισσότερη κλίση">+</button></div></div>` : ''}
     <button type="button" class="btn log-btn" data-log="${id}">${e.cardio ? 'Καταχώρηση' : 'Καταχώρηση σετ'}</button>
     ${rows ? `<ol class="sets">${rows}</ol>` : ''}
   </div>`;
@@ -1290,6 +1295,7 @@ function logSet(id){
   const prior = DB.sets.filter(s => s.ex === id);
   const priorBest = prior.length ? Math.max(...prior.map(s => metric(id, s))) : null;
   const s = {id:uid(), ex:id, a:Math.max(0,a), b:(e.cardio ? Math.max(0,b) : Math.round(b)), t:Date.now()};
+  if (e.extra) s.c = Math.min(e.extra.max, Math.max(0, parseNum($('#c-'+id).value)));
   DB.sets.push(s); save();
   if (cleared && (openEq || openProg)) renderSheetBody(); else rerenderEx(id);
   restNotified = {}; updateRest();
@@ -1668,6 +1674,10 @@ const STRENGTH_MET = 5;
 const PITA = 600; // περίπου θερμίδες σε μια πίτα γύρο
 function kcalCardio(id, s, w){
   if (id === 'run') return s.b > 0 ? w * s.b : 9.8 * w * s.a / 60;
+  if (id === 'inclinewalk' && isFinite(s.c) && s.a > 0 && s.b > 0){
+    const v = s.b * 1000 / s.a, vo2 = .1 * v + 1.8 * v * (s.c / 100) + 3.5; // ml/kg/min
+    return vo2 * w / 1000 * 5 * s.a;
+  }
   return (CARDIO_MET[id] || 6) * w * s.a / 60;
 }
 function sessionKcal(sets){
@@ -1823,7 +1833,7 @@ document.addEventListener('click', e => {
       if (Array.isArray(d.sessions)) DB.sessions = d.sessions.filter(x => x && isFinite(x.start) && isFinite(x.end));
       if (Array.isArray(d.programs)) DB.programs = d.programs.filter(p => p && p.id && p.n && Array.isArray(p.ex));
       DB.sets = d.sets.filter(s => s && EX[s.ex] && isFinite(s.a) && isFinite(s.b) && isFinite(s.t))
-        .map(s => ({id:String(s.id || uid()), ex:s.ex, a:+s.a, b:+s.b, t:+s.t}));
+        .map(s => Object.assign({id:String(s.id || uid()), ex:s.ex, a:+s.a, b:+s.b, t:+s.t}, isFinite(s.c) ? {c:+s.c} : {}));
       save(); toast('Επαναφέρθηκαν ' + DB.sets.length + ' σετ.'); renderAll();
     } catch(err){ toast('Το κείμενο δεν είναι έγκυρο αντίγραφο. Αντέγραψέ το ξανά ολόκληρο.'); }
     return;
@@ -1842,6 +1852,12 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.matches('.stepper input')){ const ex = e.target.closest('.ex'); if (ex){ e.preventDefault(); logSet(ex.dataset.ex); } }
   if (e.key === 'Enter' && e.target.id === 'new-ex-name'){ e.preventDefault(); addCustom(); }
 });
+
+/* ---------- no page zoom (pinch / double-tap); the 3D viewer keeps its own pinch ---------- */
+['gesturestart','gesturechange','gestureend'].forEach(t => document.addEventListener(t, e => e.preventDefault(), {passive:false}));
+document.addEventListener('touchmove', e => { if (e.touches.length > 1 && !e.target.closest('#viewer')) e.preventDefault(); }, {passive:false});
+let lastTouchEnd = 0;
+document.addEventListener('touchend', e => { const now = Date.now(); if (now - lastTouchEnd < 350 && !e.target.closest('input,textarea,select')) e.preventDefault(); lastTouchEnd = now; }, {passive:false});
 
 /* ---------- boot ---------- */
 DB = load(); registerCustom();
